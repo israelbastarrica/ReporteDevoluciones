@@ -1,0 +1,19 @@
+# Reportes generados (output)
+*.html
+
+# Scripts de diagnóstico y baseline temporales
+diagnostico_*.py
+baseline_*.py
+verificar_*.py
+pendientes_*.py
+import pyodbc.py
+
+# Mapa de columnas (muy grande, solo referencia local)
+COLUMNAS_MARKET.txt
+
+# Claude Code settings
+.claude/
+
+# Python cache
+__pycache__/
+*.pyc
