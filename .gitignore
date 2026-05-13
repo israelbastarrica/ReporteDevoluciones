@@ -1,5 +1,9 @@
-# Reportes generados (output)
+# Credenciales reales (nunca subir)
+config.py
+
+# Reportes generados (output), excepto index.html para GitHub Pages
 *.html
+!index.html
 
 # Scripts de diagnóstico y baseline temporales
 diagnostico_*.py

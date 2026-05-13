@@ -3,11 +3,7 @@ import pandas as pd
 import warnings
 import traceback
 import json
-
-SERVER     = r'marketcentral.ddns.net\ZOOLOGIC,1433'
-DB_CENTRAL = 'DRAGONFISH_CENTRAL'
-USER       = 'MARKET'
-PASSWORD   = 'Market202020'
+from config import SERVER, DB_CENTRAL, USER, PASSWORD
 
 warnings.filterwarnings('ignore', category=UserWarning)
 
@@ -654,4 +650,4 @@ function renderTabla(data) {{
 
 
 if __name__ == '__main__':
-    generar_html(obtener_datos(), "AUDITORIA_MARKET.html")
+    generar_html(obtener_datos(), "index.html")
