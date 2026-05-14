@@ -692,8 +692,6 @@ let modalBS       = null;
         }}
     }});
 
-    modalBS = new bootstrap.Modal(document.getElementById('modalRemitos'));
-
     // Indice inverso: Remito -> [{{cod, desc, q}}]
     const artDescMap = {{}};
     DATA_ART.forEach(d => {{ if (!artDescMap[d.Codigo]) artDescMap[d.Codigo] = d.Descripcion; }});
@@ -1042,6 +1040,7 @@ function verRemitosEl(el) {{
         document.getElementById('modalNota').textContent =
             remitos.length + ' remito/s en el último año';
     }}
+    if (!modalBS) modalBS = new bootstrap.Modal(document.getElementById('modalRemitos'));
     modalBS.show();
 }}
 </script>
