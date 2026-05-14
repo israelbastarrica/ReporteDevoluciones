@@ -1086,7 +1086,7 @@ def generar_dashboard(resultado, nombre_archivo="dashboard.html"):
         step = max(1, n // 9)
         xlabels = ''.join(
             f'<text x="{round(vw*i/max(n-1,1),1)}" y="195" text-anchor="middle" '
-            f'fill="#666" font-family="Arial" font-size="13">{lbls[i][5:]}</text>'
+            f'fill="#888" font-family="Arial" font-size="13">{lbls[i][5:]}</text>'
             for i in range(0, n, step)
         )
         trend_svg = (
@@ -1096,7 +1096,7 @@ def generar_dashboard(resultado, nombre_archivo="dashboard.html"):
             f'{xlabels}</svg>'
         )
     else:
-        trend_svg = '<p style="color:#555;">Sin datos</p>'
+        trend_svg = '<p style="color:#888;">Sin datos</p>'
 
     def bar_rows(df_grp, col_name, max_bars=8, color='#fff'):
         df_s = df_grp.groupby(col_name)['Cantidad'].sum().reset_index().sort_values('Cantidad', ascending=False).head(max_bars)
@@ -1105,12 +1105,12 @@ def generar_dashboard(resultado, nombre_archivo="dashboard.html"):
         for _, r in df_s.iterrows():
             pct = int(r['Cantidad'] / mx * 100)
             rows += (
-                f'<div style="margin-bottom:14px;">'
-                f'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
-                f'<span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">{r[col_name]}</span>'
-                f'<span style="font-weight:900;font-size:.9rem;">{int(r["Cantidad"]):,}</span></div>'
-                f'<div style="background:#1a1a1a;height:7px;">'
-                f'<div style="background:{color};height:7px;width:{pct}%;"></div></div></div>'
+                f'<div style="margin-bottom:18px;">'
+                f'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+                f'<span style="font-size:.92rem;color:#ccc;letter-spacing:.5px;">{r[col_name]}</span>'
+                f'<span style="font-weight:900;font-size:1rem;">{int(r["Cantidad"]):,}</span></div>'
+                f'<div style="background:#222;height:10px;border-radius:2px;">'
+                f'<div style="background:{color};height:10px;border-radius:2px;width:{pct}%;"></div></div></div>'
             )
         return rows
 
@@ -1145,27 +1145,27 @@ def generar_dashboard(resultado, nombre_archivo="dashboard.html"):
     for i, (_, r) in enumerate(top_dvt.iterrows()):
         bw = int(r['Pct'] / max_pct * 100)
         top_dvt_rows += (
-            f'<div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;">'
-            f'<div style="color:#444;width:18px;font-size:.85rem;text-align:right;">{i+1}</div>'
+            f'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">'
+            f'<div style="color:#888;width:22px;font-size:.9rem;text-align:right;font-weight:900;">{i+1}</div>'
             f'<div style="flex:1;">'
-            f'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
-            f'<span style="font-size:.78rem;color:#bbb;">{str(r["Descripcion"])[:42]}</span>'
-            f'<span style="font-weight:900;font-size:.95rem;margin-left:10px;">{r["Pct"]:.1f}%</span></div>'
-            f'<div style="background:#1a1a1a;height:6px;">'
-            f'<div style="background:#fff;height:6px;width:{bw}%;"></div></div></div></div>'
+            f'<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+            f'<span style="font-size:.88rem;color:#ddd;">{str(r["Descripcion"])[:42]}</span>'
+            f'<span style="font-weight:900;font-size:1.05rem;margin-left:10px;">{r["Pct"]:.1f}%</span></div>'
+            f'<div style="background:#222;height:8px;border-radius:2px;">'
+            f'<div style="background:#fff;height:8px;border-radius:2px;width:{bw}%;"></div></div></div></div>'
         )
 
     # Remitos última semana
     sem_rows = ''
     for i, r in enumerate(lista_semana[:8]):
         sem_rows += (
-            f'<div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;">'
-            f'<div style="color:#444;width:20px;font-size:.85rem;">{i+1}</div>'
-            f'<div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;'
-            f'font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R {r["r"]}</div>'
-            f'<div style="flex:1;font-size:.8rem;color:#888;">{r["f"]} · {r["l"]}</div>'
-            f'<div style="font-weight:900;font-size:1.05rem;">{r["q"]:,}</div>'
-            f'<div style="font-size:.7rem;color:#555;white-space:nowrap;">{r["m"]} mod</div></div>'
+            f'<div style="display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #222;">'
+            f'<div style="color:#888;width:22px;font-size:.9rem;font-weight:900;text-align:right;">{i+1}</div>'
+            f'<div style="background:#fff;color:#000;padding:3px 12px;font-weight:900;'
+            f'font-size:.7rem;letter-spacing:2px;white-space:nowrap;">R {r["r"]}</div>'
+            f'<div style="flex:1;font-size:.88rem;color:#aaa;">{r["f"]} · {r["l"]}</div>'
+            f'<div style="font-weight:900;font-size:1.15rem;">{r["q"]:,}</div>'
+            f'<div style="font-size:.75rem;color:#777;white-space:nowrap;">{r["m"]} mod</div></div>'
         )
 
     N_SLIDES = 8
@@ -1175,38 +1175,39 @@ def generar_dashboard(resultado, nombre_archivo="dashboard.html"):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MARKET | Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
 html,body{{width:100%;height:100%;background:#000;color:#fff;
     font-family:'Arial Black','Arial',sans-serif;overflow:hidden;}}
 .slide{{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;
-    display:flex;flex-direction:column;padding:52px 64px 72px;pointer-events:none;}}
+    display:flex;flex-direction:column;padding:80px 64px 72px;pointer-events:none;}}
 .slide.active{{opacity:1;pointer-events:all;}}
-.slide-label{{font-size:.6rem;letter-spacing:4px;color:#444;text-transform:uppercase;margin-bottom:8px;}}
-.logo-sm{{font-size:.9rem;font-weight:900;letter-spacing:8px;color:#333;}}
-.slide-title{{font-size:1rem;font-weight:900;letter-spacing:4px;color:#555;
-    text-transform:uppercase;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #1a1a1a;}}
-.kpi-giant{{font-size:clamp(3rem,8vw,7rem);font-weight:900;line-height:1;}}
-.kpi-label{{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:#555;margin-top:8px;}}
-.kpi-sub{{font-size:.85rem;color:#888;margin-top:4px;}}
-.progress-wrap{{position:fixed;bottom:0;left:0;right:0;height:3px;background:#111;z-index:50;}}
+.slide-title{{font-size:1rem;font-weight:900;letter-spacing:4px;color:#aaa;
+    text-transform:uppercase;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #222;}}
+.kpi-giant{{font-size:clamp(4.5rem,10vw,8rem);font-weight:900;line-height:1;}}
+.kpi-label{{font-size:.75rem;letter-spacing:3px;text-transform:uppercase;color:#888;margin-top:10px;}}
+.kpi-sub{{font-size:.9rem;color:#777;margin-top:6px;}}
+.progress-wrap{{position:fixed;bottom:0;left:0;right:0;height:3px;background:#111;z-index:100;}}
 .progress-bar{{height:3px;background:#fff;width:0%;transition:width linear;}}
-.dot-nav{{position:fixed;bottom:14px;right:24px;display:flex;gap:8px;z-index:50;}}
-.dot{{width:6px;height:6px;border-radius:50%;background:#333;cursor:pointer;transition:.2s;}}
+.dot-nav{{position:fixed;bottom:14px;right:24px;display:flex;gap:8px;z-index:100;}}
+.dot{{width:7px;height:7px;border-radius:50%;background:#444;cursor:pointer;transition:.2s;}}
 .dot.active{{background:#fff;}}
-.header-row{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}}
-.divider{{width:40px;height:3px;background:#fff;margin:10px 0 20px;}}
+.divider{{width:40px;height:3px;background:#fff;margin:12px 0 22px;}}
 </style>
 </head>
 <body>
 
+<!-- Header fijo siempre visible -->
+<header style="position:fixed;top:0;left:0;right:0;height:60px;background:#000;border-bottom:2px solid #1e1e1e;display:flex;align-items:center;padding:0 56px;z-index:200;gap:24px;">
+    <span style="font-size:1.5rem;font-weight:900;letter-spacing:14px;color:#fff;">MARKET</span>
+    <span style="color:#333;font-size:1.4rem;font-weight:100;line-height:1;">|</span>
+    <span id="hdrTitle" style="font-size:.62rem;letter-spacing:4px;color:#888;text-transform:uppercase;"></span>
+    <span style="flex:1;"></span>
+    <span style="font-size:.6rem;letter-spacing:3px;color:#555;">{fecha_gen}</span>
+</header>
+
 <!-- SLIDE 1: RESUMEN EJECUTIVO -->
 <div class="slide active" id="s0">
-    <div class="header-row">
-        <div class="logo-sm">MARKET</div>
-        <div style="font-size:.6rem;letter-spacing:3px;color:#333;">ACTUALIZADO {fecha_gen}</div>
-    </div>
     <div class="slide-title">Auditoria Logistica Inversa — Resumen Ejecutivo</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:40px;flex:1;align-items:center;">
         <div>
@@ -1216,8 +1217,8 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
             <div class="kpi-sub">Aprobadas en Central</div>
         </div>
         <div>
-            <div class="kpi-giant" style="color:#555;">{total_env:,}</div>
-            <div class="divider" style="background:#333;"></div>
+            <div class="kpi-giant" style="color:#666;">{total_env:,}</div>
+            <div class="divider" style="background:#444;"></div>
             <div class="kpi-label">Prendas Enviadas</div>
             <div class="kpi-sub">Central a Locales</div>
         </div>
@@ -1228,40 +1229,39 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
             <div class="kpi-sub">Devuelto / Enviado</div>
         </div>
     </div>
-    <div style="display:flex;gap:48px;margin-top:24px;padding-top:24px;border-top:1px solid #1a1a1a;">
-        <div><span style="font-size:1.6rem;font-weight:900;">{total_vta:,}</span><span style="font-size:.65rem;letter-spacing:2px;color:#555;margin-left:10px;">VENDIDAS</span></div>
-        <div><span style="font-size:1.6rem;font-weight:900;">{tasa_vta}%</span><span style="font-size:.65rem;letter-spacing:2px;color:#555;margin-left:10px;">DEV / VENTAS</span></div>
-        <div><span style="font-size:1.6rem;font-weight:900;">{modelos:,}</span><span style="font-size:.65rem;letter-spacing:2px;color:#555;margin-left:10px;">MODELOS UNICOS</span></div>
+    <div style="display:flex;gap:48px;margin-top:24px;padding-top:24px;border-top:1px solid #222;">
+        <div><span style="font-size:1.8rem;font-weight:900;">{total_vta:,}</span><span style="font-size:.65rem;letter-spacing:2px;color:#777;margin-left:12px;">VENDIDAS</span></div>
+        <div><span style="font-size:1.8rem;font-weight:900;">{tasa_vta}%</span><span style="font-size:.65rem;letter-spacing:2px;color:#777;margin-left:12px;">DEV / VENTAS</span></div>
+        <div><span style="font-size:1.8rem;font-weight:900;">{modelos:,}</span><span style="font-size:.65rem;letter-spacing:2px;color:#777;margin-left:12px;">MODELOS UNICOS</span></div>
     </div>
 </div>
 
 <!-- SLIDE 2: DEV vs VENTAS -->
 <div class="slide" id="s1">
-    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
     <div class="slide-title">Devolucion vs Ventas</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;flex:1;align-items:center;">
         <div>
-            <div style="font-size:.7rem;letter-spacing:3px;color:#444;margin-bottom:12px;">TASA DEV / VENTAS</div>
+            <div style="font-size:.72rem;letter-spacing:3px;color:#aaa;margin-bottom:14px;">TASA DEV / VENTAS</div>
             <div style="font-size:clamp(5rem,15vw,11rem);font-weight:900;line-height:1;">{tasa_vta}%</div>
             <div class="divider"></div>
-            <div style="font-size:.75rem;color:#666;line-height:1.8;">
+            <div style="font-size:.8rem;color:#888;line-height:1.9;">
                 De cada 100 prendas vendidas<br>
-                <strong style="color:#fff;font-size:1rem;">{tasa_vta}</strong> volvieron a Central
+                <strong style="color:#fff;font-size:1.1rem;">{tasa_vta}</strong> volvieron a Central
             </div>
         </div>
         <div>
-            <div style="margin-bottom:32px;">
-                <div style="font-size:.65rem;letter-spacing:3px;color:#555;margin-bottom:8px;">VENDIDAS</div>
+            <div style="margin-bottom:36px;">
+                <div style="font-size:.68rem;letter-spacing:3px;color:#aaa;margin-bottom:10px;">VENDIDAS</div>
                 <div style="display:flex;align-items:center;gap:16px;">
-                    <div style="flex:1;height:16px;background:#fff;"></div>
-                    <div style="font-weight:900;font-size:1.1rem;white-space:nowrap;">{total_vta:,}</div>
+                    <div style="flex:1;height:18px;background:#fff;"></div>
+                    <div style="font-weight:900;font-size:1.2rem;white-space:nowrap;">{total_vta:,}</div>
                 </div>
             </div>
             <div>
-                <div style="font-size:.65rem;letter-spacing:3px;color:#555;margin-bottom:8px;">DEVUELTAS</div>
+                <div style="font-size:.68rem;letter-spacing:3px;color:#aaa;margin-bottom:10px;">DEVUELTAS</div>
                 <div style="display:flex;align-items:center;gap:16px;">
-                    <div style="width:{min(int(total_dev/max(total_vta,1)*100),100)}%;height:16px;background:#fff;min-width:4px;"></div>
-                    <div style="font-weight:900;font-size:1.1rem;white-space:nowrap;">{total_dev:,}</div>
+                    <div style="width:{min(int(total_dev/max(total_vta,1)*100),100)}%;height:18px;background:#fff;min-width:4px;"></div>
+                    <div style="font-weight:900;font-size:1.2rem;white-space:nowrap;">{total_dev:,}</div>
                 </div>
             </div>
         </div>
@@ -1270,7 +1270,6 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
 
 <!-- SLIDE 3: TENDENCIA -->
 <div class="slide" id="s2">
-    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
     <div class="slide-title">Tendencia — Ultimos 90 Dias</div>
     <div style="flex:1;display:flex;align-items:center;">
         {trend_svg}
@@ -1279,7 +1278,6 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
 
 <!-- SLIDE 4: RANKING POR FAMILIA -->
 <div class="slide" id="s3">
-    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
     <div class="slide-title">Ranking por Familia</div>
     <div style="flex:1;overflow:hidden;">
         {fam_rows}
@@ -1288,15 +1286,14 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
 
 <!-- SLIDE 5: TIPO / CATEGORÍA -->
 <div class="slide" id="s4">
-    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
     <div class="slide-title">Por Tipo y Categoria</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;flex:1;overflow:hidden;">
         <div>
-            <div style="font-size:.65rem;letter-spacing:3px;color:#444;margin-bottom:20px;">TIPO DE ARTICULO</div>
+            <div style="font-size:.68rem;letter-spacing:3px;color:#aaa;margin-bottom:20px;">TIPO DE ARTICULO</div>
             {tipo_rows}
         </div>
         <div>
-            <div style="font-size:.65rem;letter-spacing:3px;color:#444;margin-bottom:20px;">CATEGORIA</div>
+            <div style="font-size:.68rem;letter-spacing:3px;color:#aaa;margin-bottom:20px;">CATEGORIA</div>
             {cate_rows}
         </div>
     </div>
@@ -1304,33 +1301,32 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
 
 <!-- SLIDE 6: LURO vs PERALTA -->
 <div class="slide" id="s5">
-    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
     <div class="slide-title">Comparacion entre Locales</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:1;">
         <div style="background:#0a0a0a;padding:36px;">
-            <div style="font-size:2rem;font-weight:900;letter-spacing:8px;margin-bottom:24px;">LURO</div>
-            <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #1a1a1a;">
-                <div style="font-size:.6rem;letter-spacing:3px;color:#444;">TASA DEV/ENV</div>
-                <div style="font-size:3rem;font-weight:900;">{loc['LURO']['te']}%</div>
+            <div style="font-size:2.2rem;font-weight:900;letter-spacing:8px;margin-bottom:24px;">LURO</div>
+            <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #222;">
+                <div style="font-size:.65rem;letter-spacing:3px;color:#888;">TASA DEV/ENV</div>
+                <div style="font-size:3.5rem;font-weight:900;">{loc['LURO']['te']}%</div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEVUELTAS</div><div style="font-size:1.4rem;font-weight:900;">{loc['LURO']['dev']:,}</div></div>
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">ENVIADAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">{loc['LURO']['env']:,}</div></div>
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">VENDIDAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">{loc['LURO']['vta']:,}</div></div>
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEV/VTA</div><div style="font-size:1.4rem;font-weight:900;">{loc['LURO']['tv']}%</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">DEVUELTAS</div><div style="font-size:1.6rem;font-weight:900;">{loc['LURO']['dev']:,}</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">ENVIADAS</div><div style="font-size:1.6rem;font-weight:900;color:#666;">{loc['LURO']['env']:,}</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">VENDIDAS</div><div style="font-size:1.6rem;font-weight:900;color:#666;">{loc['LURO']['vta']:,}</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">DEV/VTA</div><div style="font-size:1.6rem;font-weight:900;">{loc['LURO']['tv']}%</div></div>
             </div>
         </div>
         <div style="background:#111;padding:36px;">
-            <div style="font-size:2rem;font-weight:900;letter-spacing:8px;margin-bottom:24px;">PERALTA</div>
-            <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #222;">
-                <div style="font-size:.6rem;letter-spacing:3px;color:#444;">TASA DEV/ENV</div>
-                <div style="font-size:3rem;font-weight:900;">{loc['PERALTA']['te']}%</div>
+            <div style="font-size:2.2rem;font-weight:900;letter-spacing:8px;margin-bottom:24px;">PERALTA</div>
+            <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #222;">
+                <div style="font-size:.65rem;letter-spacing:3px;color:#888;">TASA DEV/ENV</div>
+                <div style="font-size:3.5rem;font-weight:900;">{loc['PERALTA']['te']}%</div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEVUELTAS</div><div style="font-size:1.4rem;font-weight:900;">{loc['PERALTA']['dev']:,}</div></div>
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">ENVIADAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">{loc['PERALTA']['env']:,}</div></div>
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">VENDIDAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">{loc['PERALTA']['vta']:,}</div></div>
-                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEV/VTA</div><div style="font-size:1.4rem;font-weight:900;">{loc['PERALTA']['tv']}%</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">DEVUELTAS</div><div style="font-size:1.6rem;font-weight:900;">{loc['PERALTA']['dev']:,}</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">ENVIADAS</div><div style="font-size:1.6rem;font-weight:900;color:#666;">{loc['PERALTA']['env']:,}</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">VENDIDAS</div><div style="font-size:1.6rem;font-weight:900;color:#666;">{loc['PERALTA']['vta']:,}</div></div>
+                <div><div style="font-size:.62rem;letter-spacing:2px;color:#888;">DEV/VTA</div><div style="font-size:1.6rem;font-weight:900;">{loc['PERALTA']['tv']}%</div></div>
             </div>
         </div>
     </div>
@@ -1338,19 +1334,66 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
 
 <!-- SLIDE 7: REMITOS RECIENTES -->
 <div class="slide" id="s6">
-    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
     <div class="slide-title">Remitos de la Ultima Semana</div>
     <div style="flex:1;overflow:hidden;">
         {sem_rows}
     </div>
 </div>
 
-<!-- SLIDE 8: TOP % DEV/VTA -->
+<!-- SLIDE 8: RELACION TASAS -->
 <div class="slide" id="s7">
-    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
-    <div class="slide-title">Top Articulos — Mayor Tasa Dev / Venta</div>
-    <div style="flex:1;overflow:hidden;">
-        {top_dvt_rows}
+    <div class="slide-title">Relacion de Tasas — Devolucion</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:1;">
+        <div style="background:#0a0a0a;padding:40px;display:flex;flex-direction:column;justify-content:center;">
+            <div style="font-size:.68rem;letter-spacing:4px;color:#aaa;margin-bottom:14px;">DEV / ENVIADO</div>
+            <div style="font-size:clamp(4rem,10vw,7rem);font-weight:900;line-height:1;">{tasa_env}%</div>
+            <div class="divider"></div>
+            <div style="margin-top:20px;">
+                <div style="margin-bottom:18px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:.85rem;color:#ccc;letter-spacing:2px;">LURO</span>
+                        <span style="font-weight:900;font-size:1rem;">{loc['LURO']['te']}%</span>
+                    </div>
+                    <div style="background:#222;height:10px;border-radius:2px;">
+                        <div style="background:#fff;height:10px;border-radius:2px;width:{min(int(loc['LURO']['te']/max(loc['LURO']['te'],loc['PERALTA']['te'],0.1)*100),100)}%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:.85rem;color:#ccc;letter-spacing:2px;">PERALTA</span>
+                        <span style="font-weight:900;font-size:1rem;">{loc['PERALTA']['te']}%</span>
+                    </div>
+                    <div style="background:#222;height:10px;border-radius:2px;">
+                        <div style="background:#fff;height:10px;border-radius:2px;width:{min(int(loc['PERALTA']['te']/max(loc['LURO']['te'],loc['PERALTA']['te'],0.1)*100),100)}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="background:#111;padding:40px;display:flex;flex-direction:column;justify-content:center;">
+            <div style="font-size:.68rem;letter-spacing:4px;color:#aaa;margin-bottom:14px;">DEV / VENDIDO</div>
+            <div style="font-size:clamp(4rem,10vw,7rem);font-weight:900;line-height:1;">{tasa_vta}%</div>
+            <div class="divider"></div>
+            <div style="margin-top:20px;">
+                <div style="margin-bottom:18px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:.85rem;color:#ccc;letter-spacing:2px;">LURO</span>
+                        <span style="font-weight:900;font-size:1rem;">{loc['LURO']['tv']}%</span>
+                    </div>
+                    <div style="background:#222;height:10px;border-radius:2px;">
+                        <div style="background:#fff;height:10px;border-radius:2px;width:{min(int(loc['LURO']['tv']/max(loc['LURO']['tv'],loc['PERALTA']['tv'],0.1)*100),100)}%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:.85rem;color:#ccc;letter-spacing:2px;">PERALTA</span>
+                        <span style="font-weight:900;font-size:1rem;">{loc['PERALTA']['tv']}%</span>
+                    </div>
+                    <div style="background:#222;height:10px;border-radius:2px;">
+                        <div style="background:#fff;height:10px;border-radius:2px;width:{min(int(loc['PERALTA']['tv']/max(loc['LURO']['tv'],loc['PERALTA']['tv'],0.1)*100),100)}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1363,6 +1406,7 @@ html,body{{width:100%;height:100%;background:#000;color:#fff;
 <script>
 const N = {N_SLIDES};
 const DURATION = 30000;
+const SLIDE_NAMES = ['Resumen Ejecutivo','Devolucion vs Ventas','Tendencia 90 Dias','Ranking por Familia','Por Tipo y Categoria','Comparacion Locales','Remitos Ultima Semana','Relacion de Tasas'];
 let cur = 0, timer = null, paused = false;
 
 const dots = document.getElementById('dotNav');
@@ -1379,6 +1423,7 @@ function goTo(n) {{
     cur = (n + N) % N;
     document.getElementById('s' + cur).classList.add('active');
     document.querySelectorAll('.dot')[cur].classList.add('active');
+    document.getElementById('hdrTitle').textContent = SLIDE_NAMES[cur];
     startProgress();
     clearTimeout(timer);
     if (!paused) timer = setTimeout(() => goTo(cur + 1), DURATION);
