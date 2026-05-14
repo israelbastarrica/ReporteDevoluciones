@@ -3,7 +3,7 @@ import pandas as pd
 import warnings
 import traceback
 import json
-from config import SERVER, DB_CENTRAL, USER, PASSWORD
+from config import SERVER, DB_CENTRAL, DB_LURO, DB_PERALTA, USER, PASSWORD
 from datetime import date, timedelta
 
 warnings.filterwarnings('ignore', category=UserWarning)
@@ -108,7 +108,56 @@ def obtener_datos():
             GROUP BY RTRIM(DET.FART), CAST(COMP.FFCH AS DATE), UPPER(RTRIM(LTRIM(COMP.FCLIENTE)))
         """, conn)
 
-        print("  [3/3] Remitos con detalle (ultimo ano)...")
+        print("  [3/4] Ventas en locales (LURO + PERALTA)...")
+        df_vta_raw = pd.read_sql(f"""
+            SELECT
+                RTRIM(DET.FART)                                              AS Codigo,
+                MAX(DET.FTXT)                                                AS Descripcion,
+                CAST(COMP.FFCH AS DATE)                                      AS Fecha,
+                'LURO'                                                       AS Local,
+                ISNULL(MAX(FAM.DESCRIP),  'SIN FAMILIA')                   AS Familia,
+                ISNULL(MAX(TIPO.DESCRIP), 'SIN TIPO')                      AS Tipo,
+                ISNULL(MAX(CATE.DESCRIP), 'SIN CATEGORIA')                 AS Categoria,
+                ISNULL(NULLIF(RTRIM(LTRIM(MAX(ART.ATEMPORADA))), ''), 'S/T') AS Temporada,
+                SUM(DET.FCANT   * COMP.SIGNOMOV)                           AS Cantidad,
+                SUM(DET.MNTPTOT * COMP.SIGNOMOV)                           AS Monto
+            FROM {DB_LURO}.Zoologic.COMPROBANTEV COMP
+            INNER JOIN {DB_LURO}.Zoologic.COMPROBANTEVDET DET ON COMP.CODIGO = DET.CODIGO
+            LEFT JOIN {DB_CENTRAL}.Zoologic.ART ART ON RTRIM(DET.FART) = ART.ARTCOD
+            LEFT JOIN {DB_CENTRAL}.Zoologic.FAMILIA FAM ON FAM.COD = ART.FAMILIA
+            LEFT JOIN {DB_CENTRAL}.Zoologic.TIPOART TIPO ON TIPO.COD = ART.TIPOARTI
+            LEFT JOIN {DB_CENTRAL}.Zoologic.CATEGART CATE ON CATE.COD = ART.CATEARTI
+            WHERE COMP.ANULADO = 0
+              AND COMP.FLETRA <> 'R'
+              AND LEFT(RTRIM(DET.FART), 1) NOT IN ('Z', '9')
+              AND DET.FTXT NOT LIKE '%BOLSA%'
+            GROUP BY RTRIM(DET.FART), CAST(COMP.FFCH AS DATE)
+            UNION ALL
+            SELECT
+                RTRIM(DET.FART),
+                MAX(DET.FTXT),
+                CAST(COMP.FFCH AS DATE),
+                'PERALTA',
+                ISNULL(MAX(FAM.DESCRIP),  'SIN FAMILIA'),
+                ISNULL(MAX(TIPO.DESCRIP), 'SIN TIPO'),
+                ISNULL(MAX(CATE.DESCRIP), 'SIN CATEGORIA'),
+                ISNULL(NULLIF(RTRIM(LTRIM(MAX(ART.ATEMPORADA))), ''), 'S/T'),
+                SUM(DET.FCANT   * COMP.SIGNOMOV),
+                SUM(DET.MNTPTOT * COMP.SIGNOMOV)
+            FROM {DB_PERALTA}.Zoologic.COMPROBANTEV COMP
+            INNER JOIN {DB_PERALTA}.Zoologic.COMPROBANTEVDET DET ON COMP.CODIGO = DET.CODIGO
+            LEFT JOIN {DB_CENTRAL}.Zoologic.ART ART ON RTRIM(DET.FART) = ART.ARTCOD
+            LEFT JOIN {DB_CENTRAL}.Zoologic.FAMILIA FAM ON FAM.COD = ART.FAMILIA
+            LEFT JOIN {DB_CENTRAL}.Zoologic.TIPOART TIPO ON TIPO.COD = ART.TIPOARTI
+            LEFT JOIN {DB_CENTRAL}.Zoologic.CATEGART CATE ON CATE.COD = ART.CATEARTI
+            WHERE COMP.ANULADO = 0
+              AND COMP.FLETRA <> 'R'
+              AND LEFT(RTRIM(DET.FART), 1) NOT IN ('Z', '9')
+              AND DET.FTXT NOT LIKE '%BOLSA%'
+            GROUP BY RTRIM(DET.FART), CAST(COMP.FFCH AS DATE)
+        """, conn)
+
+        print("  [4/4] Remitos con detalle (ultimo ano)...")
         df_remdet = pd.read_sql("""
             SELECT
                 MT.ORIGNRO                                    AS Remito,
@@ -157,6 +206,22 @@ def obtener_datos():
             .sort_values('Fecha')
         )
         df_chart['Cantidad'] = df_chart['Cantidad'].astype(int)
+
+        # Procesar ventas
+        if not df_vta_raw.empty:
+            df_vta_raw['Cantidad'] = pd.to_numeric(df_vta_raw['Cantidad'], errors='coerce').fillna(0)
+            df_vta_raw['Monto']    = pd.to_numeric(df_vta_raw['Monto'],    errors='coerce').fillna(0)
+            df_vta_raw['Fecha']    = pd.to_datetime(df_vta_raw['Fecha'])
+            df_vta_raw['Anio']     = df_vta_raw['Fecha'].dt.year.astype(int)
+            df_vta = (
+                df_vta_raw.groupby(['Codigo','Descripcion','Familia','Tipo','Categoria','Temporada','Local','Anio'])
+                .agg(Cantidad=('Cantidad','sum'), Monto=('Monto','sum'))
+                .reset_index()
+            )
+            df_vta['Cantidad'] = df_vta['Cantidad'].round().astype(int)
+            df_vta['Monto']    = df_vta['Monto'].round(2)
+        else:
+            df_vta = pd.DataFrame(columns=['Codigo','Descripcion','Familia','Tipo','Categoria','Temporada','Local','Anio','Cantidad','Monto'])
 
         # Procesar envíos
         if not df_env_raw.empty:
@@ -209,11 +274,13 @@ def obtener_datos():
         modelos   = df_art['Codigo'].nunique()
         anios     = sorted(df_art['Anio'].unique().tolist())
         total_env = int(df_env['Cantidad'].sum()) if not df_env.empty else 0
+        total_vta = int(df_vta['Cantidad'].sum()) if not df_vta.empty else 0
         print(f"\n  DEVOLUCIONES: {total:,} prendas | {modelos} modelos | anos: {anios}")
         print(f"  ENVIOS:       {total_env:,} prendas")
+        print(f"  VENTAS:       {total_vta:,} unidades")
         print(f"  REMITOS (sem): {len(lista_semana)} en los ultimos 7 dias")
 
-        return df_art, df_chart, df_env, remitos_art, lista_semana
+        return df_art, df_chart, df_env, remitos_art, lista_semana, df_vta
 
     except Exception as e:
         print(f"  ERROR: {e}")
@@ -226,13 +293,14 @@ def generar_html(resultado, nombre_archivo="index.html"):
         print("Sin datos para generar el reporte.")
         return
 
-    df_art, df_chart, df_env, remitos_art, lista_semana = resultado
+    df_art, df_chart, df_env, remitos_art, lista_semana, df_vta = resultado
 
     data_art_json    = json.dumps(df_art.to_dict('records'),   ensure_ascii=False)
     data_chart_json  = json.dumps(df_chart.to_dict('records'), ensure_ascii=False)
     data_env_json    = json.dumps(df_env.to_dict('records'),   ensure_ascii=False)
     data_rem_json    = json.dumps(remitos_art,                 ensure_ascii=False)
     data_semana_json = json.dumps(lista_semana,                ensure_ascii=False)
+    data_vta_json    = json.dumps(df_vta.to_dict('records'),   ensure_ascii=False)
 
     anios_unicos = sorted(df_art['Anio'].unique().tolist())
     tipos_unicos = sorted(df_art['Tipo'].unique().tolist())
@@ -515,8 +583,10 @@ def generar_html(resultado, nombre_archivo="index.html"):
                 <th>CODIGO</th><th>DESCRIPCION</th><th>FAMILIA</th>
                 <th>TIPO</th><th>TEMPORADA</th>
                 <th class="text-end">ENVIADO</th>
+                <th class="text-end">VENDIDO</th>
                 <th class="text-end">DEVUELTO</th>
-                <th class="text-end">% DEV</th>
+                <th class="text-end">% DEV/ENV</th>
+                <th class="text-end">% DEV/VTA</th>
             </tr></thead>
             <tbody id="tbodyDetalle"></tbody>
         </table>
@@ -558,6 +628,7 @@ def generar_html(resultado, nombre_archivo="index.html"):
 const DATA_ART    = {data_art_json};
 const DATA_CHART  = {data_chart_json};
 const DATA_ENV    = {data_env_json};
+const DATA_VTA    = {data_vta_json};
 const DATA_REM    = {data_rem_json};
 const DATA_SEMANA = {data_semana_json};
 const ANIOS_DISP  = {json.dumps(anios_unicos)};
@@ -724,6 +795,15 @@ function filtrarArt() {{
         (tipo             === 'TODOS' || d.Tipo       === tipo)
     );
 }}
+function filtrarVta() {{
+    const tipo = document.getElementById('filtroTipo').value;
+    return DATA_VTA.filter(d =>
+        estado.anios.has(d.Anio) &&
+        (estado.local     === 'AMBOS' || d.Local     === estado.local) &&
+        (estado.temporada === 'TODAS' || d.Temporada === estado.temporada) &&
+        (tipo             === 'TODOS' || d.Tipo       === tipo)
+    );
+}}
 function filtrarEnv() {{
     const tipo = document.getElementById('filtroTipo').value;
     return DATA_ENV.filter(d =>
@@ -780,13 +860,18 @@ function actualizar() {{
     chartInstance.data.datasets[0].pointRadius = estado.agrupacion === 'DIA' ? 3 : 5;
     chartInstance.update();
 
+    const vta = filtrarVta();
     const envMap = {{}};
     agrupar(env, ['Codigo']).forEach(d => {{ envMap[d.Codigo] = d.Cantidad; }});
+    const vtaMap = {{}};
+    agrupar(vta, ['Codigo']).forEach(d => {{ vtaMap[d.Codigo] = d.Cantidad; }});
 
     renderTopDevueltos(agrupar(art, ['Codigo','Descripcion','Familia','Tipo']).slice(0, 20), envMap);
 
     datosTabla = agrupar(art, ['Codigo','Descripcion','Familia','Tipo','Categoria','Temporada']).map(d => ({{
-        ...d, Enviado: envMap[d.Codigo] || 0
+        ...d,
+        Enviado: envMap[d.Codigo] || 0,
+        Vendido: vtaMap[d.Codigo] || 0
     }})).sort((a, b) => {{
         const pA = a.Enviado > 0 ? a.Cantidad / a.Enviado : 0;
         const pB = b.Enviado > 0 ? b.Cantidad / b.Enviado : 0;
@@ -891,8 +976,10 @@ function renderTabla(data) {{
             <td class="text-muted small">${{d.Tipo}}</td>
             <td class="text-muted small">${{d.Temporada}}</td>
             <td class="text-end text-muted">${{d.Enviado > 0 ? d.Enviado.toLocaleString('es-AR') : '—'}}</td>
+            <td class="text-end text-muted">${{d.Vendido > 0 ? d.Vendido.toLocaleString('es-AR') : '—'}}</td>
             <td class="text-end fw-bold">${{d.Cantidad.toLocaleString('es-AR')}}</td>
             <td class="text-end">${{fmtPct(d.Cantidad, d.Enviado)}}</td>
+            <td class="text-end">${{fmtPct(d.Cantidad, d.Vendido)}}</td>
         </tr>`
     ).join('');
 }}
