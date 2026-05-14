@@ -197,7 +197,7 @@ def obtener_datos():
                 .agg(Total=('Cantidad', 'sum'), Modelos=('Codigo', 'nunique'))
                 .reset_index()
                 .sort_values('Total', ascending=False)
-                .head(30)
+                .head(10)
             )
             lista_semana = [
                 {'r': int(r.Remito), 'f': r.FechaStr, 'l': str(r.Local),
@@ -618,6 +618,19 @@ let modalBS       = null;
     }});
 
     modalBS = new bootstrap.Modal(document.getElementById('modalRemitos'));
+
+    // Indice inverso: Remito -> [{{cod, desc, q}}]
+    const artDescMap = {{}};
+    DATA_ART.forEach(d => {{ if (!artDescMap[d.Codigo]) artDescMap[d.Codigo] = d.Descripcion; }});
+    window.remToArts = {{}};
+    Object.entries(DATA_REM).forEach(([cod, lst]) => {{
+        lst.forEach(r => {{
+            if (!window.remToArts[r.r]) window.remToArts[r.r] = [];
+            window.remToArts[r.r].push({{ cod, q: r.q, desc: artDescMap[cod] || cod }});
+        }});
+    }});
+    Object.values(window.remToArts).forEach(arr => arr.sort((a, b) => b.q - a.q));
+
     renderSemana();
     actualizar();
 }})();
@@ -798,23 +811,42 @@ function renderComparacion(art, env) {{
     }});
 }}
 
-// ── Remitos última semana (estático) ───────────────────────
+// ── Remitos última semana (estático, expandible) ───────────
 function renderSemana() {{
     const tbody = document.getElementById('tbodySemana');
     if (!DATA_SEMANA.length) {{
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Sin remitos en los últimos 7 días</td></tr>';
         return;
     }}
-    tbody.innerHTML = DATA_SEMANA.map((d, i) =>
-        `<tr>
-            <td class="text-muted small">${{i + 1}}</td>
-            <td class="fw-bold font-monospace">R ${{d.r}}</td>
-            <td>${{d.f}}</td>
-            <td><span class="semana-local ${{d.l === 'LURO' ? 'semana-luro' : 'semana-peralta'}}">${{d.l}}</span></td>
-            <td class="text-end fw-bold">${{d.q.toLocaleString('es-AR')}}</td>
-            <td class="text-end text-muted">${{d.m}}</td>
-        </tr>`
-    ).join('');
+    tbody.innerHTML = DATA_SEMANA.map((d, i) => {{
+        const arts  = window.remToArts[d.r] || [];
+        const detId = 'semdet_' + d.r;
+        const artRows = arts.map(a =>
+            `<tr style="background:#f8f8f8;">
+                <td></td>
+                <td class="font-monospace small ps-4 text-muted">${{a.cod}}</td>
+                <td colspan="3" class="small">${{a.desc}}</td>
+                <td class="text-end pe-2 fw-bold small">${{a.q.toLocaleString('es-AR')}}</td>
+            </tr>`
+        ).join('');
+        return `<tr class="clickable" onclick="toggleSemDet('${{detId}}')">
+                <td class="text-muted small">${{i + 1}}</td>
+                <td class="fw-bold font-monospace">R ${{d.r}}</td>
+                <td>${{d.f}}</td>
+                <td><span class="semana-local ${{d.l === 'LURO' ? 'semana-luro' : 'semana-peralta'}}">${{d.l}}</span></td>
+                <td class="text-end fw-bold">${{d.q.toLocaleString('es-AR')}}</td>
+                <td class="text-end text-muted">${{d.m}} <span style="font-size:.7rem;">&#9660;</span></td>
+            </tr>
+            <tr id="${{detId}}" style="display:none;">
+                <td colspan="6" class="p-0" style="border-top:none;">
+                    <table class="table table-sm mb-0">${{artRows}}</table>
+                </td>
+            </tr>`;
+    }}).join('');
+}}
+function toggleSemDet(id) {{
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? '' : 'none';
 }}
 
 // ── Top 20 más devueltos ────────────────────────────────────
