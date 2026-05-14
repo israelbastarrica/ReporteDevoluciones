@@ -12,15 +12,15 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
 .slide{position:absolute;inset:0;opacity:0;transition:opacity .6s ease;
     display:flex;flex-direction:column;padding:76px 64px 56px;pointer-events:none;}
 .slide.active{opacity:1;pointer-events:all;}
-.slide-title{font-size:.95rem;font-weight:900;letter-spacing:5px;color:#999;
+.slide-title{font-size:1.9rem;font-weight:900;letter-spacing:5px;color:#999;
     text-transform:uppercase;margin-bottom:26px;padding:0 0 14px 14px;
     border-bottom:1px solid #1e1e1e;border-left:3px solid var(--accent);}
 .kpi-giant{font-size:clamp(4.5rem,10vw,8rem);font-weight:900;line-height:1;}
 .accent{color:var(--accent);}
 .divider{width:32px;height:3px;background:var(--accent);margin:12px 0 18px;}
 .stat-mini{padding:14px 18px;border:1px solid #1e1e1e;flex:1;}
-.stat-mini .num{font-size:1.8rem;font-weight:900;}
-.stat-mini .lbl{font-size:.75rem;letter-spacing:3px;color:#555;text-transform:uppercase;margin-top:4px;}
+.stat-mini .num{font-size:2.5rem;font-weight:900;}
+.stat-mini .lbl{font-size:1.5rem;letter-spacing:3px;color:#555;text-transform:uppercase;margin-top:4px;}
 .progress-wrap{position:fixed;bottom:0;left:0;right:0;height:2px;background:#111;z-index:100;}
 .progress-bar{height:2px;background:var(--accent);width:0%;transition:width linear;}
 .dot-nav{position:fixed;bottom:10px;right:18px;display:flex;gap:6px;z-index:100;}
@@ -35,13 +35,13 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
     padding:0 48px;z-index:200;gap:18px;">
     <span style="font-size:1.2rem;font-weight:900;letter-spacing:14px;">MARKET</span>
     <span style="color:#1e1e1e;font-size:1rem;">|</span>
-    <span id="hdrTitle" style="font-size:.78rem;letter-spacing:4px;color:#555;text-transform:uppercase;flex:1;"></span>
+    <span id="hdrTitle" style="font-size:1.5rem;letter-spacing:4px;color:#555;text-transform:uppercase;flex:1;"></span>
     <button id="btnPause" onclick="togglePause()"
         style="border:1px solid #1e1e1e;background:transparent;color:#444;
-               font-family:inherit;font-size:.75rem;letter-spacing:2px;padding:4px 12px;cursor:pointer;">
+               font-family:inherit;font-size:1.3rem;letter-spacing:2px;padding:6px 16px;cursor:pointer;">
         PAUSA
     </button>
-    <span style="font-size:.52rem;letter-spacing:2px;color:#2a2a2a;margin-left:14px;">14/05/2026</span>
+    <span style="font-size:.9rem;letter-spacing:2px;color:#2a2a2a;margin-left:14px;">14/05/2026</span>
 </header>
 
 <!-- S0: RESUMEN EJECUTIVO -->
@@ -49,32 +49,32 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
     <div class="slide-title">Auditoria Logistica Inversa — Resumen Ejecutivo</div>
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:56px;flex:1;align-items:center;">
         <div>
-            <div style="font-size:.82rem;letter-spacing:4px;color:#555;margin-bottom:14px;">PRENDAS DEVUELTAS</div>
+            <div style="font-size:1.5rem;letter-spacing:4px;color:#555;margin-bottom:14px;">PRENDAS DEVUELTAS</div>
             <div class="kpi-giant accent">670,035</div>
             <div class="divider"></div>
             <div style="font-size:.72rem;color:#555;">Recibidas y aprobadas en Central</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:24px;">
             <div>
-                <div style="font-size:.75rem;letter-spacing:3px;color:#444;margin-bottom:5px;">ENVIADAS</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#444;margin-bottom:5px;">ENVIADAS</div>
                 <div style="font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;color:#777;">4,509,875</div>
             </div>
             <div>
-                <div style="font-size:.75rem;letter-spacing:3px;color:#444;margin-bottom:5px;">VENDIDAS</div>
-                <div style="font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;color:#777;">3,879,185</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#444;margin-bottom:5px;">VENDIDAS</div>
+                <div style="font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;color:#777;">3,879,224</div>
             </div>
             <div>
-                <div style="font-size:.75rem;letter-spacing:3px;color:#444;margin-bottom:5px;">MODELOS</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#444;margin-bottom:5px;">MODELOS</div>
                 <div style="font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;color:#777;">3,685</div>
             </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:24px;">
             <div style="padding-left:24px;border-left:1px solid #1a1a1a;">
-                <div style="font-size:.75rem;letter-spacing:3px;color:#444;margin-bottom:5px;">TASA DEV/ENV</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#444;margin-bottom:5px;">TASA DEV/ENV</div>
                 <div style="font-size:clamp(2rem,4.5vw,3rem);font-weight:900;">14.9%</div>
             </div>
             <div style="padding-left:24px;border-left:1px solid #1a1a1a;">
-                <div style="font-size:.75rem;letter-spacing:3px;color:#444;margin-bottom:5px;">TASA DEV/VTA</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#444;margin-bottom:5px;">TASA DEV/VTA</div>
                 <div style="font-size:clamp(2rem,4.5vw,3rem);font-weight:900;">17.3%</div>
             </div>
         </div>
@@ -86,26 +86,26 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
     <div class="slide-title">Devolucion vs Ventas</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;flex:1;align-items:center;">
         <div>
-            <div style="font-size:.82rem;letter-spacing:4px;color:#555;margin-bottom:14px;">DE CADA 100 VENDIDAS</div>
+            <div style="font-size:1.5rem;letter-spacing:4px;color:#555;margin-bottom:14px;">DE CADA 100 VENDIDAS</div>
             <div style="font-size:clamp(5rem,15vw,10rem);font-weight:900;line-height:1;" class="accent">17.3%</div>
             <div class="divider"></div>
-            <div style="font-size:.75rem;color:#666;line-height:1.9;">volvieron a Central</div>
+            <div style="font-size:1.5rem;color:#666;line-height:1.9;">volvieron a Central</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:28px;">
             <div>
-                <div style="font-size:.78rem;letter-spacing:3px;color:#666;margin-bottom:10px;">VENDIDAS · 3,879,185</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#666;margin-bottom:10px;">VENDIDAS · 3,879,224</div>
                 <div style="height:12px;background:#222;border-radius:2px;">
                     <div style="width:100%;height:12px;background:#444;border-radius:2px;"></div>
                 </div>
             </div>
             <div>
-                <div style="font-size:.78rem;letter-spacing:3px;color:#666;margin-bottom:10px;">DEVUELTAS · 670,035</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#666;margin-bottom:10px;">DEVUELTAS · 670,035</div>
                 <div style="height:12px;background:#222;border-radius:2px;">
                     <div style="width:17%;height:12px;background:var(--accent);border-radius:2px;min-width:3px;"></div>
                 </div>
             </div>
             <div>
-                <div style="font-size:.78rem;letter-spacing:3px;color:#666;margin-bottom:10px;">ENVIADAS · 4,509,875</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#666;margin-bottom:10px;">ENVIADAS · 4,509,875</div>
                 <div style="height:12px;background:#222;border-radius:2px;">
                     <div style="width:100%;height:12px;background:#333;border-radius:2px;"></div>
                 </div>
@@ -146,7 +146,7 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
 <div class="slide" id="s3">
     <div class="slide-title">Ranking por Familia</div>
     <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:center;">
-        <div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#e8b963;letter-spacing:.5px;">Media</span><span style="font-weight:900;font-size:.95rem;color:#e8b963;">202,238</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#e8b963;height:9px;border-radius:2px;width:100%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Pantalon</span><span style="font-weight:900;font-size:.95rem;color:#fff;">140,981</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:69%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Remera</span><span style="font-weight:900;font-size:.95rem;color:#fff;">91,111</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:45%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Calza</span><span style="font-weight:900;font-size:.95rem;color:#fff;">30,879</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:15%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Bombacha</span><span style="font-weight:900;font-size:.95rem;color:#fff;">26,886</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:13%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Corpiño</span><span style="font-weight:900;font-size:.95rem;color:#fff;">16,265</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:8%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Campera</span><span style="font-weight:900;font-size:.95rem;color:#fff;">15,195</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:7%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Trajes De Baño</span><span style="font-weight:900;font-size:.95rem;color:#fff;">14,742</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:7%;"></div></div></div>
+        <div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#e8b963;letter-spacing:.5px;">Media</span><span style="font-weight:900;font-size:1.8rem;color:#e8b963;">202,238</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#e8b963;height:9px;border-radius:2px;width:100%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Pantalon</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">140,981</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:69%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Remera</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">91,111</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:45%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Calza</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">30,879</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:15%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Bombacha</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">26,886</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:13%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Corpiño</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">16,265</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:8%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Campera</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">15,195</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:7%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Trajes De Baño</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">14,742</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:7%;"></div></div></div>
     </div>
 </div>
 
@@ -155,12 +155,12 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
     <div class="slide-title">Por Tipo y Categoria</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;flex:1;overflow:hidden;">
         <div>
-            <div style="font-size:.78rem;letter-spacing:4px;color:#555;margin-bottom:18px;padding-left:10px;border-left:2px solid var(--accent);">TIPO DE ARTICULO</div>
-            <div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#e8b963;letter-spacing:.5px;">Indumentaria</span><span style="font-weight:900;font-size:.95rem;color:#e8b963;">351,924</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#e8b963;height:9px;border-radius:2px;width:100%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Lenceria</span><span style="font-weight:900;font-size:.95rem;color:#fff;">273,172</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:77%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Casa blanqueria</span><span style="font-weight:900;font-size:.95rem;color:#fff;">20,611</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:5%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Accesorios</span><span style="font-weight:900;font-size:.95rem;color:#fff;">13,347</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:3%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">No aplica</span><span style="font-weight:900;font-size:.95rem;color:#fff;">4,478</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:1%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Calzado</span><span style="font-weight:900;font-size:.95rem;color:#fff;">4,300</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:1%;"></div></div></div>
+            <div style="font-size:1.5rem;letter-spacing:4px;color:#555;margin-bottom:18px;padding-left:10px;border-left:2px solid var(--accent);">TIPO DE ARTICULO</div>
+            <div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#e8b963;letter-spacing:.5px;">Indumentaria</span><span style="font-weight:900;font-size:1.8rem;color:#e8b963;">351,924</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#e8b963;height:9px;border-radius:2px;width:100%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Lenceria</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">273,172</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:77%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Casa blanqueria</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">20,611</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:5%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Accesorios</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">13,347</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:3%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">No aplica</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">4,478</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:1%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Calzado</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">4,300</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:1%;"></div></div></div>
         </div>
         <div>
-            <div style="font-size:.78rem;letter-spacing:4px;color:#555;margin-bottom:18px;padding-left:10px;border-left:2px solid #2a2a2a;">CATEGORIA</div>
-            <div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#e8b963;letter-spacing:.5px;">Mujer</span><span style="font-weight:900;font-size:.95rem;color:#e8b963;">225,126</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#e8b963;height:9px;border-radius:2px;width:100%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Hombre</span><span style="font-weight:900;font-size:.95rem;color:#fff;">168,658</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:74%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Nene</span><span style="font-weight:900;font-size:.95rem;color:#fff;">140,040</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:62%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Nena</span><span style="font-weight:900;font-size:.95rem;color:#fff;">80,467</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:35%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">Unisex</span><span style="font-weight:900;font-size:.95rem;color:#fff;">50,785</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:22%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.88rem;color:#bbb;letter-spacing:.5px;">No aplica</span><span style="font-weight:900;font-size:.95rem;color:#fff;">4,478</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:1%;"></div></div></div>
+            <div style="font-size:1.5rem;letter-spacing:4px;color:#555;margin-bottom:18px;padding-left:10px;border-left:2px solid #2a2a2a;">CATEGORIA</div>
+            <div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#e8b963;letter-spacing:.5px;">Mujer</span><span style="font-weight:900;font-size:1.8rem;color:#e8b963;">225,126</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#e8b963;height:9px;border-radius:2px;width:100%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Hombre</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">168,658</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:74%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Nene</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">140,040</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:62%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Nena</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">80,467</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:35%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">Unisex</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">50,785</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:22%;"></div></div></div><div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:1.75rem;color:#bbb;letter-spacing:.5px;">No aplica</span><span style="font-weight:900;font-size:1.8rem;color:#fff;">4,478</span></div><div style="background:#1a1a1a;height:9px;border-radius:2px;"><div style="background:#fff;height:9px;border-radius:2px;width:1%;"></div></div></div>
         </div>
     </div>
 </div>
@@ -171,34 +171,34 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;flex:1;">
         <div style="background:#040404;padding:36px 44px;display:flex;flex-direction:column;justify-content:center;">
             <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
-                <div style="font-size:1.6rem;font-weight:900;letter-spacing:8px;">LURO</div>
+                <div style="font-size:2.8rem;font-weight:900;letter-spacing:8px;">LURO</div>
                 
             </div>
             <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #1a1a1a;">
-                <div style="font-size:.78rem;letter-spacing:3px;color:#777;margin-bottom:6px;">TASA DEV/ENV</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#777;margin-bottom:6px;">TASA DEV/ENV</div>
                 <div style="font-size:clamp(2.5rem,6vw,4rem);font-weight:900;color:#fff;">11.6%</div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">DEVUELTAS</div><div style="font-size:1.3rem;font-weight:900;">313,086</div></div>
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">ENVIADAS</div><div style="font-size:1.3rem;font-weight:900;color:#555;">2,691,483</div></div>
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">VENDIDAS</div><div style="font-size:1.3rem;font-weight:900;color:#555;">2,492,943</div></div>
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">DEV/VTA</div><div style="font-size:1.3rem;font-weight:900;">12.6%</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">DEVUELTAS</div><div style="font-size:2.2rem;font-weight:900;">313,086</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">ENVIADAS</div><div style="font-size:2.2rem;font-weight:900;color:#555;">2,691,483</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">VENDIDAS</div><div style="font-size:2.2rem;font-weight:900;color:#555;">2,492,943</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">DEV/VTA</div><div style="font-size:2.2rem;font-weight:900;">12.6%</div></div>
             </div>
         </div>
         <div style="background:#080808;padding:36px 44px;display:flex;flex-direction:column;justify-content:center;">
             <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
-                <div style="font-size:1.6rem;font-weight:900;letter-spacing:8px;">PERALTA</div>
-                <div style="font-size:.75rem;letter-spacing:2px;color:#ef5350;border:1px solid #3a1a1a;padding:2px 8px;">MAYOR TASA</div>
+                <div style="font-size:2.8rem;font-weight:900;letter-spacing:8px;">PERALTA</div>
+                <div style="font-size:1.4rem;letter-spacing:2px;color:#ef5350;border:1px solid #3a1a1a;padding:2px 8px;">MAYOR TASA</div>
             </div>
             <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #1e1e1e;">
-                <div style="font-size:.78rem;letter-spacing:3px;color:#777;margin-bottom:6px;">TASA DEV/ENV</div>
+                <div style="font-size:1.5rem;letter-spacing:3px;color:#777;margin-bottom:6px;">TASA DEV/ENV</div>
                 <div style="font-size:clamp(2.5rem,6vw,4rem);font-weight:900;color:var(--accent);">19.6%</div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">DEVUELTAS</div><div style="font-size:1.3rem;font-weight:900;">356,949</div></div>
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">ENVIADAS</div><div style="font-size:1.3rem;font-weight:900;color:#555;">1,818,392</div></div>
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">VENDIDAS</div><div style="font-size:1.3rem;font-weight:900;color:#555;">1,386,242</div></div>
-                <div><div style="font-size:.75rem;letter-spacing:2px;color:#555;">DEV/VTA</div><div style="font-size:1.3rem;font-weight:900;">25.7%</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">DEVUELTAS</div><div style="font-size:2.2rem;font-weight:900;">356,949</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">ENVIADAS</div><div style="font-size:2.2rem;font-weight:900;color:#555;">1,818,392</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">VENDIDAS</div><div style="font-size:2.2rem;font-weight:900;color:#555;">1,386,281</div></div>
+                <div><div style="font-size:1.4rem;letter-spacing:2px;color:#555;">DEV/VTA</div><div style="font-size:2.2rem;font-weight:900;">25.7%</div></div>
             </div>
         </div>
     </div>
@@ -207,7 +207,7 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
 <!-- S6: REMITOS -->
 <div class="slide" id="s6">
     <div class="slide-title">Remitos de la Ultima Semana</div>
-    <div style="flex:1;overflow:hidden;"><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#e8b963;width:22px;font-size:.85rem;font-weight:900;text-align:right;">1</div><div style="background:#e8b963;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 4554</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-08 · LURO</div><div style="font-weight:900;font-size:1.1rem;color:#e8b963;">840</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">9 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:22px;font-size:.85rem;font-weight:900;text-align:right;">2</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 4619</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-11 · LURO</div><div style="font-weight:900;font-size:1.1rem;color:#fff;">600</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">10 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:22px;font-size:.85rem;font-weight:900;text-align:right;">3</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6091</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-12 · PERALTA</div><div style="font-weight:900;font-size:1.1rem;color:#fff;">480</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:22px;font-size:.85rem;font-weight:900;text-align:right;">4</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6071</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-11 · PERALTA</div><div style="font-weight:900;font-size:1.1rem;color:#fff;">480</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:22px;font-size:.85rem;font-weight:900;text-align:right;">5</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6093</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-12 · PERALTA</div><div style="font-weight:900;font-size:1.1rem;color:#fff;">480</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:22px;font-size:.85rem;font-weight:900;text-align:right;">6</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 4626</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-11 · LURO</div><div style="font-weight:900;font-size:1.1rem;color:#fff;">480</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">6 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:22px;font-size:.85rem;font-weight:900;text-align:right;">7</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6125</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-13 · PERALTA</div><div style="font-weight:900;font-size:1.1rem;color:#fff;">480</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:22px;font-size:.85rem;font-weight:900;text-align:right;">8</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6038</div><div style="flex:1;font-size:.82rem;color:#999;">2026-05-11 · PERALTA</div><div style="font-weight:900;font-size:1.1rem;color:#fff;">480</div><div style="font-size:.72rem;color:#555;white-space:nowrap;">3 mod</div></div></div>
+    <div style="flex:1;overflow:hidden;"><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#e8b963;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">1</div><div style="background:#e8b963;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R4554</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-08 · LURO</div><div style="font-weight:900;font-size:2.1rem;color:#e8b963;">840</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">9 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">2</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R4619</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-11 · LURO</div><div style="font-weight:900;font-size:2.1rem;color:#fff;">600</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">10 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">3</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R6091</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-12 · PERALTA</div><div style="font-weight:900;font-size:2.1rem;color:#fff;">480</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">4</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R6071</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-11 · PERALTA</div><div style="font-weight:900;font-size:2.1rem;color:#fff;">480</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">5</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R6093</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-12 · PERALTA</div><div style="font-weight:900;font-size:2.1rem;color:#fff;">480</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">6</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R4626</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-11 · LURO</div><div style="font-weight:900;font-size:2.1rem;color:#fff;">480</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">6 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">7</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R6125</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-13 · PERALTA</div><div style="font-weight:900;font-size:2.1rem;color:#fff;">480</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #1a1a1a;"><div style="color:#555;width:32px;font-size:1.7rem;font-weight:900;text-align:right;">8</div><div style="background:#fff;color:#000;padding:3px 10px;font-weight:900;font-size:1.3rem;letter-spacing:2px;white-space:nowrap;">R6038</div><div style="flex:1;font-size:1.5rem;color:#999;">2026-05-11 · PERALTA</div><div style="font-weight:900;font-size:2.1rem;color:#fff;">480</div><div style="font-size:1.4rem;color:#555;white-space:nowrap;">3 mod</div></div></div>
 </div>
 
 <!-- S7: RELACION TASAS -->
@@ -215,14 +215,14 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
     <div class="slide-title">Relacion de Tasas — Devolucion</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;flex:1;">
         <div style="background:#040404;padding:40px 48px;display:flex;flex-direction:column;justify-content:center;">
-            <div style="font-size:.82rem;letter-spacing:4px;color:#666;margin-bottom:12px;">DEV / ENVIADO</div>
+            <div style="font-size:1.5rem;letter-spacing:4px;color:#666;margin-bottom:12px;">DEV / ENVIADO</div>
             <div style="font-size:clamp(4rem,10vw,7rem);font-weight:900;line-height:1;" class="accent">14.9%</div>
             <div class="divider"></div>
             <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
                 <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                        <span style="font-size:.8rem;color:#bbb;letter-spacing:2px;">LURO</span>
-                        <span style="font-weight:900;font-size:.9rem;">11.6%</span>
+                        <span style="font-size:1.5rem;color:#bbb;letter-spacing:2px;">LURO</span>
+                        <span style="font-weight:900;font-size:1.8rem;">11.6%</span>
                     </div>
                     <div style="background:#1a1a1a;height:8px;border-radius:2px;">
                         <div style="background:var(--accent);height:8px;border-radius:2px;width:59%;"></div>
@@ -230,8 +230,8 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
                 </div>
                 <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                        <span style="font-size:.8rem;color:#bbb;letter-spacing:2px;">PERALTA</span>
-                        <span style="font-weight:900;font-size:.9rem;">19.6%</span>
+                        <span style="font-size:1.5rem;color:#bbb;letter-spacing:2px;">PERALTA</span>
+                        <span style="font-weight:900;font-size:1.8rem;">19.6%</span>
                     </div>
                     <div style="background:#1a1a1a;height:8px;border-radius:2px;">
                         <div style="background:#fff;height:8px;border-radius:2px;width:100%;"></div>
@@ -240,14 +240,14 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
             </div>
         </div>
         <div style="background:#080808;padding:40px 48px;display:flex;flex-direction:column;justify-content:center;">
-            <div style="font-size:.82rem;letter-spacing:4px;color:#666;margin-bottom:12px;">DEV / VENDIDO</div>
+            <div style="font-size:1.5rem;letter-spacing:4px;color:#666;margin-bottom:12px;">DEV / VENDIDO</div>
             <div style="font-size:clamp(4rem,10vw,7rem);font-weight:900;line-height:1;" class="accent">17.3%</div>
             <div class="divider"></div>
             <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
                 <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                        <span style="font-size:.8rem;color:#bbb;letter-spacing:2px;">LURO</span>
-                        <span style="font-weight:900;font-size:.9rem;">12.6%</span>
+                        <span style="font-size:1.5rem;color:#bbb;letter-spacing:2px;">LURO</span>
+                        <span style="font-weight:900;font-size:1.8rem;">12.6%</span>
                     </div>
                     <div style="background:#1a1a1a;height:8px;border-radius:2px;">
                         <div style="background:var(--accent);height:8px;border-radius:2px;width:49%;"></div>
@@ -255,8 +255,8 @@ html,body{width:100%;height:100%;background:#000;color:#fff;
                 </div>
                 <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                        <span style="font-size:.8rem;color:#bbb;letter-spacing:2px;">PERALTA</span>
-                        <span style="font-weight:900;font-size:.9rem;">25.7%</span>
+                        <span style="font-size:1.5rem;color:#bbb;letter-spacing:2px;">PERALTA</span>
+                        <span style="font-weight:900;font-size:1.8rem;">25.7%</span>
                     </div>
                     <div style="background:#1a1a1a;height:8px;border-radius:2px;">
                         <div style="background:#fff;height:8px;border-radius:2px;width:100%;"></div>
