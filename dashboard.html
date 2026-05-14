@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MARKET | Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;background:#000;color:#fff;
+    font-family:'Arial Black','Arial',sans-serif;overflow:hidden;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;
+    display:flex;flex-direction:column;padding:52px 64px 72px;pointer-events:none;}
+.slide.active{opacity:1;pointer-events:all;}
+.slide-label{font-size:.6rem;letter-spacing:4px;color:#444;text-transform:uppercase;margin-bottom:8px;}
+.logo-sm{font-size:.9rem;font-weight:900;letter-spacing:8px;color:#333;}
+.slide-title{font-size:1rem;font-weight:900;letter-spacing:4px;color:#555;
+    text-transform:uppercase;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #1a1a1a;}
+.kpi-giant{font-size:clamp(3rem,8vw,7rem);font-weight:900;line-height:1;}
+.kpi-label{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:#555;margin-top:8px;}
+.kpi-sub{font-size:.85rem;color:#888;margin-top:4px;}
+.progress-wrap{position:fixed;bottom:0;left:0;right:0;height:3px;background:#111;z-index:50;}
+.progress-bar{height:3px;background:#fff;width:0%;transition:width linear;}
+.dot-nav{position:fixed;bottom:14px;right:24px;display:flex;gap:8px;z-index:50;}
+.dot{width:6px;height:6px;border-radius:50%;background:#333;cursor:pointer;transition:.2s;}
+.dot.active{background:#fff;}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}
+.divider{width:40px;height:3px;background:#fff;margin:10px 0 20px;}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: RESUMEN EJECUTIVO -->
+<div class="slide active" id="s0">
+    <div class="header-row">
+        <div class="logo-sm">MARKET</div>
+        <div style="font-size:.6rem;letter-spacing:3px;color:#333;">ACTUALIZADO 14/05/2026</div>
+    </div>
+    <div class="slide-title">Auditoria Logistica Inversa — Resumen Ejecutivo</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:40px;flex:1;align-items:center;">
+        <div>
+            <div class="kpi-giant">670,035</div>
+            <div class="divider"></div>
+            <div class="kpi-label">Prendas Devueltas</div>
+            <div class="kpi-sub">Aprobadas en Central</div>
+        </div>
+        <div>
+            <div class="kpi-giant" style="color:#555;">4,509,875</div>
+            <div class="divider" style="background:#333;"></div>
+            <div class="kpi-label">Prendas Enviadas</div>
+            <div class="kpi-sub">Central a Locales</div>
+        </div>
+        <div>
+            <div class="kpi-giant">14.9%</div>
+            <div class="divider"></div>
+            <div class="kpi-label">Tasa de Devolucion</div>
+            <div class="kpi-sub">Devuelto / Enviado</div>
+        </div>
+    </div>
+    <div style="display:flex;gap:48px;margin-top:24px;padding-top:24px;border-top:1px solid #1a1a1a;">
+        <div><span style="font-size:1.6rem;font-weight:900;">3,878,917</span><span style="font-size:.65rem;letter-spacing:2px;color:#555;margin-left:10px;">VENDIDAS</span></div>
+        <div><span style="font-size:1.6rem;font-weight:900;">17.3%</span><span style="font-size:.65rem;letter-spacing:2px;color:#555;margin-left:10px;">DEV / VENTAS</span></div>
+        <div><span style="font-size:1.6rem;font-weight:900;">3,685</span><span style="font-size:.65rem;letter-spacing:2px;color:#555;margin-left:10px;">MODELOS UNICOS</span></div>
+    </div>
+</div>
+
+<!-- SLIDE 2: DEV vs VENTAS -->
+<div class="slide" id="s1">
+    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
+    <div class="slide-title">Devolucion vs Ventas</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;flex:1;align-items:center;">
+        <div>
+            <div style="font-size:.7rem;letter-spacing:3px;color:#444;margin-bottom:12px;">TASA DEV / VENTAS</div>
+            <div style="font-size:clamp(5rem,15vw,11rem);font-weight:900;line-height:1;">17.3%</div>
+            <div class="divider"></div>
+            <div style="font-size:.75rem;color:#666;line-height:1.8;">
+                De cada 100 prendas vendidas<br>
+                <strong style="color:#fff;font-size:1rem;">17.3</strong> volvieron a Central
+            </div>
+        </div>
+        <div>
+            <div style="margin-bottom:32px;">
+                <div style="font-size:.65rem;letter-spacing:3px;color:#555;margin-bottom:8px;">VENDIDAS</div>
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div style="flex:1;height:16px;background:#fff;"></div>
+                    <div style="font-weight:900;font-size:1.1rem;white-space:nowrap;">3,878,917</div>
+                </div>
+            </div>
+            <div>
+                <div style="font-size:.65rem;letter-spacing:3px;color:#555;margin-bottom:8px;">DEVUELTAS</div>
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div style="width:17%;height:16px;background:#fff;min-width:4px;"></div>
+                    <div style="font-weight:900;font-size:1.1rem;white-space:nowrap;">670,035</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 3: TENDENCIA -->
+<div class="slide" id="s2">
+    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
+    <div class="slide-title">Tendencia — Ultimos 90 Dias</div>
+    <div style="flex:1;display:flex;align-items:center;">
+        <svg viewBox="0 0 1000 205" style="width:100%;height:100%;"><polygon points="0,160 0.0,143.1 23.8,114.3 47.6,132.9 71.4,128.2 95.2,125.3 119.0,117.6 142.9,149.3 166.7,14.5 190.5,144.2 214.3,94.7 238.1,159.5 261.9,133.2 285.7,118.6 309.5,72.0 333.3,123.8 357.1,138.8 381.0,138.5 404.8,87.8 428.6,140.9 452.4,70.8 476.2,143.7 500.0,137.9 523.8,131.3 547.6,106.1 571.4,150.2 595.2,120.7 619.0,109.1 642.9,52.1 666.7,152.2 690.5,136.2 714.3,129.2 738.1,133.9 761.9,116.5 785.7,142.4 809.5,130.3 833.3,137.4 857.1,148.5 881.0,107.9 904.8,121.7 928.6,92.6 952.4,137.0 976.2,128.1 1000.0,148.3 1000,160" fill="rgba(255,255,255,0.07)"/><polyline points="0.0,143.1 23.8,114.3 47.6,132.9 71.4,128.2 95.2,125.3 119.0,117.6 142.9,149.3 166.7,14.5 190.5,144.2 214.3,94.7 238.1,159.5 261.9,133.2 285.7,118.6 309.5,72.0 333.3,123.8 357.1,138.8 381.0,138.5 404.8,87.8 428.6,140.9 452.4,70.8 476.2,143.7 500.0,137.9 523.8,131.3 547.6,106.1 571.4,150.2 595.2,120.7 619.0,109.1 642.9,52.1 666.7,152.2 690.5,136.2 714.3,129.2 738.1,133.9 761.9,116.5 785.7,142.4 809.5,130.3 833.3,137.4 857.1,148.5 881.0,107.9 904.8,121.7 928.6,92.6 952.4,137.0 976.2,128.1 1000.0,148.3" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><text x="0.0" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">02-13</text><text x="95.2" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">02-27</text><text x="190.5" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">03-12</text><text x="285.7" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">03-18</text><text x="381.0" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">03-26</text><text x="476.2" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">04-07</text><text x="571.4" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">04-14</text><text x="666.7" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">04-21</text><text x="761.9" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">04-27</text><text x="857.1" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">05-06</text><text x="952.4" y="195" text-anchor="middle" fill="#666" font-family="Arial" font-size="13">05-12</text></svg>
+    </div>
+</div>
+
+<!-- SLIDE 4: RANKING POR FAMILIA -->
+<div class="slide" id="s3">
+    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
+    <div class="slide-title">Ranking por Familia</div>
+    <div style="flex:1;overflow:hidden;">
+        <div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Media</span><span style="font-weight:900;font-size:.9rem;">202,238</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:100%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Pantalon</span><span style="font-weight:900;font-size:.9rem;">140,981</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:69%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Remera</span><span style="font-weight:900;font-size:.9rem;">91,111</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:45%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Calza</span><span style="font-weight:900;font-size:.9rem;">30,879</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:15%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Bombacha</span><span style="font-weight:900;font-size:.9rem;">26,886</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:13%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Corpiño</span><span style="font-weight:900;font-size:.9rem;">16,265</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:8%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Campera</span><span style="font-weight:900;font-size:.9rem;">15,195</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:7%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Trajes De Baño</span><span style="font-weight:900;font-size:.9rem;">14,742</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:7%;"></div></div></div>
+    </div>
+</div>
+
+<!-- SLIDE 5: TIPO / CATEGORÍA -->
+<div class="slide" id="s4">
+    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
+    <div class="slide-title">Por Tipo y Categoria</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;flex:1;overflow:hidden;">
+        <div>
+            <div style="font-size:.65rem;letter-spacing:3px;color:#444;margin-bottom:20px;">TIPO DE ARTICULO</div>
+            <div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Indumentaria</span><span style="font-weight:900;font-size:.9rem;">351,924</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:100%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Lenceria</span><span style="font-weight:900;font-size:.9rem;">273,172</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:77%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Casa blanqueria</span><span style="font-weight:900;font-size:.9rem;">20,611</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:5%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Accesorios</span><span style="font-weight:900;font-size:.9rem;">13,347</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:3%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">No aplica</span><span style="font-weight:900;font-size:.9rem;">4,478</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:1%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Calzado</span><span style="font-weight:900;font-size:.9rem;">4,300</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:1%;"></div></div></div>
+        </div>
+        <div>
+            <div style="font-size:.65rem;letter-spacing:3px;color:#444;margin-bottom:20px;">CATEGORIA</div>
+            <div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Mujer</span><span style="font-weight:900;font-size:.9rem;">225,126</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:100%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Hombre</span><span style="font-weight:900;font-size:.9rem;">168,658</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:74%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Nene</span><span style="font-weight:900;font-size:.9rem;">140,040</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:62%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Nena</span><span style="font-weight:900;font-size:.9rem;">80,467</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:35%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">Unisex</span><span style="font-weight:900;font-size:.9rem;">50,785</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:22%;"></div></div></div><div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;color:#bbb;letter-spacing:.5px;">No aplica</span><span style="font-weight:900;font-size:.9rem;">4,478</span></div><div style="background:#1a1a1a;height:7px;"><div style="background:#fff;height:7px;width:1%;"></div></div></div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 6: LURO vs PERALTA -->
+<div class="slide" id="s5">
+    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
+    <div class="slide-title">Comparacion entre Locales</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:1;">
+        <div style="background:#0a0a0a;padding:36px;">
+            <div style="font-size:2rem;font-weight:900;letter-spacing:8px;margin-bottom:24px;">LURO</div>
+            <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #1a1a1a;">
+                <div style="font-size:.6rem;letter-spacing:3px;color:#444;">TASA DEV/ENV</div>
+                <div style="font-size:3rem;font-weight:900;">11.6%</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEVUELTAS</div><div style="font-size:1.4rem;font-weight:900;">313,086</div></div>
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">ENVIADAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">2,691,483</div></div>
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">VENDIDAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">2,492,742</div></div>
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEV/VTA</div><div style="font-size:1.4rem;font-weight:900;">12.6%</div></div>
+            </div>
+        </div>
+        <div style="background:#111;padding:36px;">
+            <div style="font-size:2rem;font-weight:900;letter-spacing:8px;margin-bottom:24px;">PERALTA</div>
+            <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #222;">
+                <div style="font-size:.6rem;letter-spacing:3px;color:#444;">TASA DEV/ENV</div>
+                <div style="font-size:3rem;font-weight:900;">19.6%</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEVUELTAS</div><div style="font-size:1.4rem;font-weight:900;">356,949</div></div>
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">ENVIADAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">1,818,392</div></div>
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">VENDIDAS</div><div style="font-size:1.4rem;font-weight:900;color:#555;">1,386,175</div></div>
+                <div><div style="font-size:.6rem;letter-spacing:2px;color:#444;">DEV/VTA</div><div style="font-size:1.4rem;font-weight:900;">25.8%</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 7: REMITOS RECIENTES -->
+<div class="slide" id="s6">
+    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
+    <div class="slide-title">Remitos de la Ultima Semana</div>
+    <div style="flex:1;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">1</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 4554</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-08 · LURO</div><div style="font-weight:900;font-size:1.05rem;">840</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">9 mod</div></div><div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">2</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 4619</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-11 · LURO</div><div style="font-weight:900;font-size:1.05rem;">600</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">10 mod</div></div><div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">3</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6091</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-12 · PERALTA</div><div style="font-weight:900;font-size:1.05rem;">480</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">4</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6071</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-11 · PERALTA</div><div style="font-weight:900;font-size:1.05rem;">480</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">5</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6093</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-12 · PERALTA</div><div style="font-weight:900;font-size:1.05rem;">480</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">6</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 4626</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-11 · LURO</div><div style="font-weight:900;font-size:1.05rem;">480</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">6 mod</div></div><div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">7</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6125</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-13 · PERALTA</div><div style="font-weight:900;font-size:1.05rem;">480</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">1 mod</div></div><div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #1e1e1e;"><div style="color:#444;width:20px;font-size:.85rem;">8</div><div style="background:#fff;color:#000;padding:2px 10px;font-weight:900;font-size:.65rem;letter-spacing:2px;white-space:nowrap;">R 6038</div><div style="flex:1;font-size:.8rem;color:#888;">2026-05-11 · PERALTA</div><div style="font-weight:900;font-size:1.05rem;">480</div><div style="font-size:.7rem;color:#555;white-space:nowrap;">3 mod</div></div>
+    </div>
+</div>
+
+<!-- SLIDE 8: TOP % DEV/VTA -->
+<div class="slide" id="s7">
+    <div class="logo-sm" style="margin-bottom:8px;">MARKET</div>
+    <div class="slide-title">Top Articulos — Mayor Tasa Dev / Venta</div>
+    <div style="flex:1;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">1</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">MEDIA 3/4 CANA EST T8-10 X3</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">2435.0%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:100%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">2</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">BILLE PVC CUE LINEAS BA9871</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">1566.7%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:64%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">3</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">GORRO LANA POLIACRÍCILICO C/PIEL TEJIDO C/</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">1043.5%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:42%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">4</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">MEDIA 3/4 COLE T2 74</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">918.5%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:37%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">5</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">MEDIA DEP ANT VER GO811</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">914.3%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:37%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">6</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">BILLE PVC CUE LINEAS DIAG BA9870</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">880.7%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:36%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">7</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">MEDIA 3/4 COLE T1 74</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">811.6%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:33%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">8</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">KIT MEDIA DEP ANT C/PANT NG GO810</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">788.6%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:32%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">9</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">MEDIA 3/4 COLE 74 T-2</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">756.4%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:31%;"></div></div></div></div><div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;"><div style="color:#444;width:18px;font-size:.85rem;text-align:right;">10</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.78rem;color:#bbb;">MEDIA 3/4 COLE T3 74</span><span style="font-weight:900;font-size:.95rem;margin-left:10px;">744.9%</span></div><div style="background:#1a1a1a;height:6px;"><div style="background:#fff;height:6px;width:30%;"></div></div></div></div>
+    </div>
+</div>
+
+<!-- Barra de progreso -->
+<div class="progress-wrap"><div class="progress-bar" id="pgBar"></div></div>
+
+<!-- Puntos de navegación -->
+<div class="dot-nav" id="dotNav"></div>
+
+<script>
+const N = 8;
+const DURATION = 30000;
+let cur = 0, timer = null, paused = false;
+
+const dots = document.getElementById('dotNav');
+for (let i = 0; i < N; i++) {
+    const d = document.createElement('span');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dots.appendChild(d);
+}
+
+function goTo(n) {
+    document.getElementById('s' + cur).classList.remove('active');
+    document.querySelectorAll('.dot')[cur].classList.remove('active');
+    cur = (n + N) % N;
+    document.getElementById('s' + cur).classList.add('active');
+    document.querySelectorAll('.dot')[cur].classList.add('active');
+    startProgress();
+    clearTimeout(timer);
+    if (!paused) timer = setTimeout(() => goTo(cur + 1), DURATION);
+}
+
+function startProgress() {
+    const bar = document.getElementById('pgBar');
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        bar.style.transition = `width ${DURATION}ms linear`;
+        bar.style.width = '100%';
+    }));
+}
+
+document.body.addEventListener('mouseenter', () => {
+    paused = true; clearTimeout(timer);
+    document.getElementById('pgBar').style.transition = 'none';
+});
+document.body.addEventListener('mouseleave', () => {
+    paused = false;
+    timer = setTimeout(() => goTo(cur + 1), DURATION);
+    startProgress();
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') goTo(cur + 1);
+    if (e.key === 'ArrowLeft') goTo(cur - 1);
+});
+
+goTo(0);
+</script>
+</body>
+</html>
