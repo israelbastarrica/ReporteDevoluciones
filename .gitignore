@@ -1,10 +1,11 @@
 # Credenciales reales (nunca subir)
 config.py
 
-# Reportes generados (output), excepto index.html para GitHub Pages
+# Reportes generados (output), excepto los publicados en GitHub Pages
 *.html
 !index.html
 !dashboard.html
+!pendientes.html
 
 # Scripts de diagnóstico y baseline temporales
 diagnostico_*.py
