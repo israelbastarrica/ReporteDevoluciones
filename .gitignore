@@ -6,6 +6,9 @@ config.py
 !index.html
 !dashboard.html
 !pendientes.html
+!envios.html
+!logistica.html
+!insumos.html
 
 # Scripts de diagnóstico y baseline temporales
 diagnostico_*.py

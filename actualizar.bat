@@ -9,7 +9,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-"C:\Program Files\Git\bin\git.exe" add index.html dashboard.html pendientes.html
+"C:\Program Files\Git\bin\git.exe" add index.html dashboard.html pendientes.html envios.html
 
 "C:\Program Files\Git\bin\git.exe" diff --cached --quiet
 if errorlevel 1 (
