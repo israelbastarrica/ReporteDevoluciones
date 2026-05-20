@@ -267,6 +267,7 @@ tbody td{{padding:7px 10px;white-space:nowrap;}}
     <div style="color:var(--muted);font-size:11px;margin-top:3px;">Versión preliminar · {ahora}</div>
   </div>
   <div class="nav-links">
+    <a href="home.html">INICIO</a>
     <a href="index.html">DEVOLUCIONES</a>
     <a href="envios.html">ENVÍOS</a>
     <a href="pendientes.html">PENDIENTES</a>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reportes — MARKET</title>
+<style>
+:root{--bg:#0d0d0d;--card:#141414;--border:#2a2a2a;--accent:#e8b963;--text:#f0f0f0;--muted:#888;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-size:13px;min-height:100vh;}
+.page-header{background:#111;border-bottom:2px solid var(--accent);padding:20px 32px;display:flex;align-items:center;gap:16px;}
+.logo{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:28px;color:var(--accent);letter-spacing:2px;}
+.subtitle{color:var(--muted);font-size:12px;margin-top:4px;letter-spacing:.5px;}
+.content{padding:32px;}
+.section-title{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:13px;color:var(--muted);letter-spacing:1px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:40px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px 22px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,background .15s;text-decoration:none;color:inherit;}
+.card:hover{border-color:var(--accent);background:#181818;}
+.card-icon{font-size:26px;line-height:1;}
+.card-title{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:15px;color:var(--accent);letter-spacing:.5px;}
+.card-desc{color:var(--muted);font-size:12px;line-height:1.5;flex:1;}
+.card-arrow{color:#444;font-size:18px;margin-top:4px;align-self:flex-end;}
+.card:hover .card-arrow{color:var(--accent);}
+.badge-new{display:inline-block;background:#1a2e1a;color:#22c55e;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.5px;margin-left:6px;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <div class="logo">MARKET</div>
+    <div class="subtitle">SISTEMA DE REPORTES INTERNO</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="section-title">OPERACIONES</div>
+  <div class="grid">
+
+    <a class="card" href="index.html">
+      <div class="card-icon">&#8617;</div>
+      <div class="card-title">DEVOLUCIONES</div>
+      <div class="card-desc">Control de devoluciones por proveedor. Seguimiento de artículos devueltos y estado de aprobación.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="envios.html">
+      <div class="card-icon">&#128666;</div>
+      <div class="card-title">ENVÍOS</div>
+      <div class="card-desc">Seguimiento de envíos entre locales. Estado y detalle de remitos generados.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="control_remitos.html">
+      <div class="card-icon">&#9989;</div>
+      <div class="card-title">CONTROL DE REMITOS<span class="badge-new">NUEVO</span></div>
+      <div class="card-desc">Estado de remitos del día por local destino: aceptados, rechazados y pendientes de confirmación.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="pendientes.html">
+      <div class="card-icon">&#9203;</div>
+      <div class="card-title">PENDIENTES</div>
+      <div class="card-desc">Artículos pendientes de aprobación o procesamiento en el sistema.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="logistica.html">
+      <div class="card-icon">&#128230;</div>
+      <div class="card-title">LOGÍSTICA ENTRANTE</div>
+      <div class="card-desc">Pedidos pendientes a proveedores y mercadería de locales en tránsito hacia Central.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="insumos.html">
+      <div class="card-icon">&#128722;</div>
+      <div class="card-title">INSUMOS Y CARTONES</div>
+      <div class="card-desc">Stock actual e insumos consumidos en el mes, agrupados por proveedor. Incluye notas para Logística y Compras.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+  </div>
+
+  <div class="section-title">ANÁLISIS</div>
+  <div class="grid">
+
+    <a class="card" href="dashboard.html">
+      <div class="card-icon">&#128202;</div>
+      <div class="card-title">DASHBOARD</div>
+      <div class="card-desc">Resumen ejecutivo con métricas clave de operaciones, ventas y movimientos del período.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="AUDITORIA_MARKET.html">
+      <div class="card-icon">&#128269;</div>
+      <div class="card-title">AUDITORÍA MARKET</div>
+      <div class="card-desc">Auditoría de movimientos y operaciones del sistema MARKET.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="AUDITORIA_MARKET_2026.html">
+      <div class="card-icon">&#128197;</div>
+      <div class="card-title">AUDITORÍA 2026</div>
+      <div class="card-desc">Auditoría detallada de operaciones del ejercicio 2026.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" href="AUDITORIA_MARKET_HISTORICO.html">
+      <div class="card-icon">&#128203;</div>
+      <div class="card-title">AUDITORÍA HISTÓRICO</div>
+      <div class="card-desc">Registro histórico acumulado de auditorías anteriores.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+  </div>
+
+</div>
+
+</body>
+</html>

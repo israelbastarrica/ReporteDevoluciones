@@ -9,6 +9,8 @@ config.py
 !envios.html
 !logistica.html
 !insumos.html
+!control_remitos.html
+!home.html
 
 # Scripts de diagnóstico y baseline temporales
 diagnostico_*.py
