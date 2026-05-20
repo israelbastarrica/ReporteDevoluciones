@@ -539,7 +539,10 @@ const KPI_DATA = {{
 }};
 const PG = 150;
 const FIELDS = ['Codigo','Descripcion','Unidad','Consumido','StockActual'];
-const SERVER = 'http://localhost:5001';
+// Si se abre desde el servidor Flask, usar la misma origin; si es archivo local usar localhost
+const SERVER = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:5001'
+  : window.location.origin;
 
 // ── Datos compartidos (servidor + fallback localStorage) ─────
 const LS_KEY = 'insumos_shared_v2';
@@ -1123,6 +1126,42 @@ loadShared().then(() => {{
   actualizarBadgesUrgente();
   renderDesusoTables();
 }});
+
+// ── Auto-refresh: sincronizar cambios de otros usuarios cada 30s ──
+setInterval(async () => {{
+  const snap = JSON.stringify({{
+    u: shared.urgente, d: shared.desuso,
+    p: shared.pedido_realizado, pi: shared.pedido_info,
+    s: shared.solicitudes_cartones, h: shared.historial
+  }});
+  try {{
+    const r = await fetch(SERVER+'/api/shared', {{signal: AbortSignal.timeout(3000)}});
+    const nuevo = await r.json();
+    const snap2 = JSON.stringify({{
+      u: nuevo.urgente, d: nuevo.desuso,
+      p: nuevo.pedido_realizado, pi: nuevo.pedido_info,
+      s: nuevo.solicitudes_cartones, h: nuevo.historial
+    }});
+    if (snap2 === snap) return;   // nada cambió
+    Object.assign(shared, nuevo);
+    shared.urgente          = shared.urgente          || [];
+    shared.desuso           = shared.desuso           || [];
+    shared.stock_minimo     = shared.stock_minimo     || {{}};
+    shared.pedido_realizado = shared.pedido_realizado || [];
+    shared.pedido_info      = shared.pedido_info      || {{}};
+    shared.notas            = shared.notas            || {{}};
+    shared.solicitudes_cartones = shared.solicitudes_cartones || [];
+    shared.historial        = shared.historial        || [];
+    if (S.ins)  S.ins.filtrar();
+    if (S.cart) S.cart.filtrar();
+    renderPedidoSections();
+    renderSolicitudes();
+    actualizarBadgeTab();
+    actualizarBadgesUrgente();
+    renderDesusoTables();
+    if (tabActual === 'hist') renderHistorial();
+  }} catch(e) {{}}   // servidor no disponible, ignorar
+}}, 30000);
 </script>
 </body>
 </html>"""
