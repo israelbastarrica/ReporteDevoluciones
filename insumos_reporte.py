@@ -275,7 +275,7 @@ tbody tr.pedido-done td{{opacity:.5;}}
 <div class="kpi-row" id="kpi-row"></div>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('ins',this)">INSUMOS</button>
+  <button class="tab-btn active" id="tab-ins-btn" onclick="switchTab('ins',this)">INSUMOS</button>
   <button class="tab-btn" id="tab-cart-btn" onclick="switchTab('cart',this)">CARTONES</button>
 </div>
 
@@ -487,6 +487,17 @@ document.addEventListener('contextmenu', e => {{
 document.addEventListener('click', () => ctxMenu.style.display = 'none');
 document.addEventListener('keydown', e => {{ if(e.key==='Escape') ctxMenu.style.display='none'; }});
 
+function actualizarBadgesUrgente() {{
+  ['ins','cart'].forEach(id => {{
+    const btn = document.getElementById('tab-'+id+'-btn');
+    if (!btn) return;
+    const existing = btn.querySelector('.tab-badge-urg');
+    if (existing) existing.remove();
+    const cnt = (shared.urgente||[]).filter(cod => DATASETS[id].some(r=>r.Codigo===cod)).length;
+    if (cnt > 0) btn.insertAdjacentHTML('beforeend',`<span class="tab-badge tab-badge-urg">${{cnt}}</span>`);
+  }});
+}}
+
 function ctxToggleUrgente() {{
   if (!ctxCod) return;
   if (shared.urgente.includes(ctxCod))
@@ -496,7 +507,7 @@ function ctxToggleUrgente() {{
     shared.desuso = shared.desuso.filter(c=>c!==ctxCod);
   }}
   saveShared({{ urgente: shared.urgente, desuso: shared.desuso }});
-  S.ins.render(); S.cart.render(); renderDesusoTables();
+  S.ins.filtrar(); S.cart.filtrar(); renderDesusoTables(); actualizarBadgesUrgente();
 }}
 function ctxToggleDesuso() {{
   if (!ctxCod) return;
@@ -507,7 +518,7 @@ function ctxToggleDesuso() {{
     shared.urgente = shared.urgente.filter(c=>c!==ctxCod);
   }}
   saveShared({{ desuso: shared.desuso, urgente: shared.urgente }});
-  S.ins.render(); S.cart.render(); renderDesusoTables();
+  S.ins.filtrar(); S.cart.filtrar(); renderDesusoTables(); actualizarBadgesUrgente();
 }}
 
 // ── Desuso panel ──────────────────────────────────────────────
@@ -527,7 +538,7 @@ function renderDesusoTables() {{
         <td style="color:#555">${{r.Codigo}}</td>
         <td style="color:#555">${{r.Descripcion}}</td>
         <td class="num" style="color:#555">${{r.StockActual}}</td>
-        <td><button onclick="shared.desuso=shared.desuso.filter(c=>c!=='${{r.Codigo}}');saveShared({{desuso:shared.desuso}});S.${{id}}.render();renderDesusoTables();"
+        <td><button onclick="shared.desuso=shared.desuso.filter(c=>c!=='${{r.Codigo}}');saveShared({{desuso:shared.desuso}});S.${{id}}.filtrar();renderDesusoTables();actualizarBadgesUrgente();"
           style="background:none;border:1px solid #444;color:#888;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;">Restaurar</button></td>
       </tr>`).join('') || '<tr><td colspan="4" style="color:#333;padding:10px;">Sin artículos en desuso</td></tr>';
   }});
@@ -738,6 +749,7 @@ loadShared().then(() => {{
   poblarSelectCartones();
   renderSolicitudes();
   actualizarBadgeTab();
+  actualizarBadgesUrgente();
   renderDesusoTables();
 }});
 </script>
