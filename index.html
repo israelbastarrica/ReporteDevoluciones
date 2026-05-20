@@ -8,64 +8,64 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        :root { --borde: 4px solid #000; }
-        body            { background:#fff; color:#000; font-family:'Arial Black','Arial',sans-serif; }
-        .filtros-bar    { position:sticky; top:0; z-index:100; background:#000; color:#fff;
-                           padding:14px 24px; display:flex; gap:32px; align-items:center;
-                           flex-wrap:wrap; border-bottom:4px solid #000; }
-        .filtro-grupo   { display:flex; flex-direction:column; gap:6px; }
-        .filtro-label   { font-size:.65rem; letter-spacing:3px; text-transform:uppercase;
-                           color:#aaa; font-weight:900; }
-        .anio-btn       { border:2px solid #fff; background:transparent; color:#fff;
-                           padding:4px 12px; font-family:inherit; font-weight:900;
-                           font-size:.85rem; cursor:pointer; transition:.15s; }
-        .anio-btn.activo { background:#fff; color:#000; }
-        .tog-btn        { border:2px solid #fff; background:transparent; color:#fff;
-                           padding:5px 14px; font-family:inherit; font-weight:900;
-                           font-size:.85rem; cursor:pointer; transition:.15s; }
-        .tog-btn.activo { background:#fff; color:#000; }
-        .tipo-select    { border:2px solid #fff; background:#000; color:#fff;
-                           padding:5px 10px; font-family:inherit; font-weight:900;
-                           font-size:.85rem; cursor:pointer; min-width:180px; }
-        .tipo-select option { background:#000; color:#fff; }
-        .contenido      { padding:30px 40px; }
-        .header-market  { border-bottom:12px solid #000; padding:20px 0; margin-bottom:40px; }
-        .logo           { font-size:3.5rem; font-weight:900; letter-spacing:12px; }
-        .kpi-box        { border:var(--borde); padding:25px; text-align:center; height:100%; }
-        .kpi-inv        { background:#000; color:#fff; }
-        .section-title  { background:#000; color:#fff; padding:10px 16px; font-weight:900;
-                           text-transform:uppercase; letter-spacing:3px; margin:50px 0 20px; font-size:1rem; }
-        .chart-wrap     { border:var(--borde); padding:20px; }
-        .table-market   { border:3px solid #000; }
-        .table-market thead { background:#000; color:#fff; }
-        .badge-filtro   { background:#000; color:#fff; font-size:.7rem;
-                           padding:3px 8px; font-family:inherit; font-weight:900; letter-spacing:1px; }
-        .pct-alta       { color:#c00; font-weight:900; }
-        .pct-media      { color:#e07000; font-weight:900; }
-        .pct-baja       { color:#060; font-weight:900; }
-        .comp-card      { border:var(--borde); padding:0; overflow:hidden; height:100%; }
-        .comp-header    { padding:16px 20px; font-size:1.5rem; font-weight:900;
-                           letter-spacing:6px; text-align:center; }
-        .comp-luro      { background:#000; color:#fff; }
-        .comp-peralta   { background:#fff; color:#000; border-bottom:4px solid #000; }
-        .comp-body      { padding:20px; }
-        .comp-row       { display:flex; justify-content:space-between; align-items:baseline;
-                           padding:8px 0; border-bottom:1px solid #eee; }
-        .comp-row:last-child { border-bottom:none; }
-        .comp-label     { font-size:.75rem; letter-spacing:2px; text-transform:uppercase;
-                           color:#666; font-weight:700; }
-        .comp-val       { font-size:1.4rem; font-weight:900; }
-        .comp-tasa      { font-size:1.8rem; font-weight:900; }
-        tr.clickable    { cursor:pointer; }
-        tr.clickable:hover td { background:#f5f5f5; }
-        .modal-content  { border:3px solid #000; border-radius:0; }
-        .modal-header   { background:#000; color:#fff; border-radius:0; border-bottom:none; }
-        .modal-title    { font-weight:900; letter-spacing:2px; font-size:.95rem; }
-        .btn-close-white { filter: invert(1); }
-        .semana-local   { font-size:.7rem; padding:2px 8px; font-weight:900;
-                           letter-spacing:1px; }
-        .semana-luro    { background:#000; color:#fff; }
-        .semana-peralta { border:2px solid #000; background:#fff; color:#000; }
+        :root{--borde:1px solid #2a2a2a;--accent:#e8b963;--bg:#0d0d0d;--card:#141414;--border:#2a2a2a;--text:#f0f0f0;--muted:#888;}
+        /* Bootstrap dark overrides */
+        *,*::before,*::after{box-sizing:border-box;}
+        body{background:var(--bg)!important;color:var(--text)!important;font-family:'Arial Black','Arial',sans-serif;}
+        .text-muted{color:var(--muted)!important;}
+        .fw-bold,.fs-4{color:var(--text);}
+        .table{--bs-table-color:#f0f0f0;--bs-table-bg:#141414;--bs-table-border-color:#2a2a2a;color:#f0f0f0;}
+        .table-hover>tbody>tr:hover>*{background-color:#181818!important;color:#f0f0f0;}
+        .modal-content{background:#141414!important;border:1px solid #2a2a2a!important;border-radius:6px!important;color:#f0f0f0!important;}
+        .modal-header{background:#111!important;border-bottom:1px solid #2a2a2a!important;}
+        .modal-body{background:#141414!important;}
+        .btn-close,.btn-close-white{filter:invert(1);}
+        /* Filter bar */
+        .filtros-bar{position:sticky;top:0;z-index:100;background:#111;color:#fff;padding:14px 24px;display:flex;gap:32px;align-items:center;flex-wrap:wrap;border-bottom:2px solid var(--accent);}
+        .filtro-grupo{display:flex;flex-direction:column;gap:6px;}
+        .filtro-label{font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:900;}
+        .anio-btn{border:1px solid #444;background:transparent;color:#888;padding:4px 12px;font-family:inherit;font-weight:900;font-size:.85rem;cursor:pointer;transition:.15s;}
+        .anio-btn.activo{background:var(--accent);color:#000;border-color:var(--accent);}
+        .tog-btn{border:1px solid #444;background:transparent;color:#888;padding:5px 14px;font-family:inherit;font-weight:900;font-size:.85rem;cursor:pointer;transition:.15s;}
+        .tog-btn.activo{background:var(--accent);color:#000;border-color:var(--accent);}
+        .tipo-select{border:1px solid #444;background:#1a1a1a;color:#888;padding:5px 10px;font-family:inherit;font-weight:900;font-size:.85rem;cursor:pointer;min-width:180px;}
+        .tipo-select option{background:#1a1a1a;color:#888;}
+        /* Layout */
+        .contenido{padding:30px 40px;background:var(--bg);}
+        .header-market{border-bottom:2px solid var(--accent);padding:20px 0;margin-bottom:40px;}
+        .logo{font-size:3.5rem;font-weight:900;letter-spacing:12px;color:var(--accent);}
+        /* KPI */
+        .kpi-box{border:var(--borde);background:var(--card);padding:25px;text-align:center;height:100%;}
+        .kpi-inv{background:#111;color:#fff;}
+        /* Sections */
+        .section-title{background:#111;color:var(--muted);padding:10px 16px;font-weight:900;text-transform:uppercase;letter-spacing:3px;margin:50px 0 20px;font-size:1rem;border-left:3px solid var(--accent);}
+        .chart-wrap{border:var(--borde);background:var(--card);padding:20px;}
+        /* Tables */
+        .table-market{border:1px solid var(--border)!important;color:var(--text);}
+        .table-market thead{background:#1a1a1a;color:var(--muted);}
+        .table-market tbody tr:hover td{background:#181818;}
+        .badge-filtro{background:#111;color:var(--muted);font-size:.7rem;padding:3px 8px;font-family:inherit;font-weight:900;letter-spacing:1px;}
+        /* Percentages */
+        .pct-alta{color:#ef4444;font-weight:900;}
+        .pct-media{color:#f97316;font-weight:900;}
+        .pct-baja{color:#22c55e;font-weight:900;}
+        /* Comparison cards */
+        .comp-card{border:var(--borde);background:var(--card);padding:0;overflow:hidden;height:100%;}
+        .comp-header{padding:16px 20px;font-size:1.5rem;font-weight:900;letter-spacing:6px;text-align:center;}
+        .comp-luro{background:#1a2e1a;color:#7ef7a0;}
+        .comp-peralta{background:#1e1e3a;color:#c07ef7;border-bottom:1px solid #2a2a2a;}
+        .comp-body{padding:20px;}
+        .comp-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid #1e1e1e;}
+        .comp-row:last-child{border-bottom:none;}
+        .comp-label{font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:#555;font-weight:700;}
+        .comp-val{font-size:1.4rem;font-weight:900;}
+        .comp-tasa{font-size:1.8rem;font-weight:900;}
+        tr.clickable{cursor:pointer;}
+        tr.clickable:hover td{background:#181818!important;}
+        .modal-title{font-weight:900;letter-spacing:2px;font-size:.95rem;}
+        .semana-local{font-size:.7rem;padding:2px 8px;font-weight:900;letter-spacing:1px;}
+        .semana-luro{background:#1a2e1a;color:#7ef7a0;}
+        .semana-peralta{background:#1e1e3a;color:#c07ef7;border:1px solid #2a2a2a;}
     </style>
 </head>
 <body>
@@ -104,6 +104,7 @@
         <div class="text-muted small mt-1">Actualizado: 19/05/2026</div>
         <div id="resumenFiltros" class="mt-2" style="font-size:.9rem;font-weight:400;"></div>
         <div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <a href="home.html" style="color:#e8b963;text-decoration:none;font-size:.7rem;letter-spacing:2px;font-weight:900;padding:6px 14px;border:1px solid #e8b963;">INICIO</a>
             <a href="envios.html" style="color:#aaa;text-decoration:none;font-size:.7rem;letter-spacing:2px;font-weight:900;padding:6px 14px;border:1px solid #333;">TRIÁNGULO DE ENVÍOS</a>
             <a href="pendientes.html" style="color:#aaa;text-decoration:none;font-size:.7rem;letter-spacing:2px;font-weight:900;padding:6px 14px;border:1px solid #333;">REMITOS PENDIENTES</a>
             <a href="dashboard.html" style="color:#aaa;text-decoration:none;font-size:.7rem;letter-spacing:2px;font-weight:900;padding:6px 14px;border:1px solid #333;">DASHBOARD</a>

@@ -37,28 +37,32 @@ def obtener_datos(fecha_desde: str) -> pd.DataFrame:
         SELECT 2 AS IDLocal, 1 AS IDLocalOrigen, RTRIM(COMP.CODIGO) AS RemitoID,
                CASE WHEN TRY_CAST(LEFT(COMP.HALTAFW,2) AS INT) >= 21
                     THEN DATEADD(DAY,1,CONVERT(DATE,COMP.FFCH,112))
-                    ELSE CONVERT(DATE,COMP.FFCH,112) END AS LogicalDate
+                    ELSE CONVERT(DATE,COMP.FFCH,112) END AS LogicalDate,
+               COMP.FNUMCOMP AS NroRemito
         FROM {DB_CENTRAL}.ZooLogic.COMPROBANTEV COMP
         WHERE COMP.ANULADO = 0 AND COMP.FLETRA = 'R' AND COMP.FCLIENTE = 'LURO'
         UNION ALL
         SELECT 2, 3, RTRIM(COMP.CODIGO),
                CASE WHEN TRY_CAST(LEFT(COMP.HALTAFW,2) AS INT) >= 21
                     THEN DATEADD(DAY,1,CONVERT(DATE,COMP.FFCH,112))
-                    ELSE CONVERT(DATE,COMP.FFCH,112) END
+                    ELSE CONVERT(DATE,COMP.FFCH,112) END,
+               COMP.FNUMCOMP
         FROM [marketperalta.ddns.net].{DB_PERALTA}.ZooLogic.COMPROBANTEV COMP
         WHERE COMP.ANULADO = 0 AND COMP.FLETRA = 'R' AND COMP.FCLIENTE = 'LURO'
         UNION ALL
         SELECT 3, 1, RTRIM(COMP.CODIGO),
                CASE WHEN TRY_CAST(LEFT(COMP.HALTAFW,2) AS INT) >= 21
                     THEN DATEADD(DAY,1,CONVERT(DATE,COMP.FFCH,112))
-                    ELSE CONVERT(DATE,COMP.FFCH,112) END
+                    ELSE CONVERT(DATE,COMP.FFCH,112) END,
+               COMP.FNUMCOMP
         FROM {DB_CENTRAL}.ZooLogic.COMPROBANTEV COMP
         WHERE COMP.ANULADO = 0 AND COMP.FLETRA = 'R' AND COMP.FCLIENTE = 'PERALTA'
         UNION ALL
         SELECT 3, 2, RTRIM(COMP.CODIGO),
                CASE WHEN TRY_CAST(LEFT(COMP.HALTAFW,2) AS INT) >= 21
                     THEN DATEADD(DAY,1,CONVERT(DATE,COMP.FFCH,112))
-                    ELSE CONVERT(DATE,COMP.FFCH,112) END
+                    ELSE CONVERT(DATE,COMP.FFCH,112) END,
+               COMP.FNUMCOMP
         FROM [marketluro.ddns.net].{DB_LURO}.ZooLogic.COMPROBANTEV COMP
         WHERE COMP.ANULADO = 0 AND COMP.FLETRA = 'R' AND COMP.FCLIENTE = 'PERALTA'
     )
@@ -66,6 +70,7 @@ def obtener_datos(fecha_desde: str) -> pd.DataFrame:
         CASE R.IDLocal WHEN 2 THEN 'LURO' WHEN 3 THEN 'PERALTA' END  AS LocalDestino,
         CASE R.IDLocalOrigen WHEN 1 THEN 'CENTRAL' WHEN 2 THEN 'LURO'
              WHEN 3 THEN 'PERALTA' END                                AS LocalOrigen,
+        R.NroRemito,
         R.RemitoID,
         CONVERT(VARCHAR(10), R.LogicalDate, 120)                      AS Fecha,
         ISNULL(CR.Estado, 'PENDIENTE')                                AS Estado,
@@ -231,7 +236,7 @@ tbody td{{padding:7px 10px;white-space:nowrap;}}
     <option value="ACEPTADO">ACEPTADO</option>
     <option value="RECHAZADO">RECHAZADO</option>
   </select>
-  <input type="text" id="buscar" placeholder="Buscar remito ID…" oninput="filtrar()">
+  <input type="text" id="buscar" placeholder="Buscar nº o remito ID…" oninput="filtrar()">
 </div>
 <div class="cnt" id="cnt"></div>
 <div class="tbl-wrap"><table><thead>
@@ -239,11 +244,12 @@ tbody td{{padding:7px 10px;white-space:nowrap;}}
     <th onclick="sortBy(0)">DESTINO</th>
     <th onclick="sortBy(1)">ORIGEN</th>
     <th onclick="sortBy(2)">FECHA</th>
-    <th onclick="sortBy(3)">ESTADO</th>
+    <th onclick="sortBy(3)">Nº REMITO</th>
+    <th onclick="sortBy(4)">ESTADO</th>
     <th>REMITO ID</th>
-    <th onclick="sortBy(5)">COMENTARIO</th>
-    <th onclick="sortBy(6)">USUARIO</th>
-    <th onclick="sortBy(7)">FECHA ACCIÓN</th>
+    <th onclick="sortBy(6)">COMENTARIO</th>
+    <th onclick="sortBy(7)">USUARIO</th>
+    <th onclick="sortBy(8)">FECHA ACCIÓN</th>
   </tr>
 </thead>
 <tbody id="tbody"></tbody>
@@ -259,7 +265,7 @@ const DATA = {data_json};
 const PG_SIZE = 100;
 let filt = [...DATA];
 let pg = 1, sortCol = -1, sortDir = 1;
-const FIELDS = ['LocalDestino','LocalOrigen','Fecha','Estado','RemitoID','Comentario','Usuario','FechaAccion'];
+const FIELDS = ['LocalDestino','LocalOrigen','Fecha','NroRemito','Estado','RemitoID','Comentario','Usuario','FechaAccion'];
 
 function localBadge(l){{
   if(l==='LURO')    return '<span class="badge badge-luro">LURO</span>';
@@ -281,7 +287,7 @@ function filtrar(){{
     (!local  || r.LocalDestino === local) &&
     (!origen || r.LocalOrigen  === origen) &&
     (!estado || r.Estado       === estado) &&
-    (!busq   || r.RemitoID.toLowerCase().includes(busq))
+    (!busq   || r.RemitoID.toLowerCase().includes(busq) || String(r.NroRemito).includes(busq))
   );
   pg = 1;
   render();
@@ -308,6 +314,7 @@ function render(){{
       <td>${{localBadge(r.LocalDestino)}}</td>
       <td>${{localBadge(r.LocalOrigen)}}</td>
       <td>${{r.Fecha}}</td>
+      <td style="font-weight:700;color:var(--accent)">${{r.NroRemito}}</td>
       <td>${{estadoBadge(r.Estado)}}</td>
       <td class="remito-id" title="${{r.RemitoID}}">${{r.RemitoID}}</td>
       <td style="color:var(--text)">${{r.Comentario}}</td>
