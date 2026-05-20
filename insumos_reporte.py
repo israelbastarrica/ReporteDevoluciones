@@ -249,6 +249,30 @@ tbody tr.pedido-done td{{opacity:.5;}}
 .sol-vacas{{color:#2a4a2a;font-size:12px;font-style:italic;}}
 /* Badge solicitudes en tab */
 .tab-badge{{display:inline-block;background:var(--err);color:#fff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:10px;margin-left:5px;vertical-align:middle;}}
+/* YA PEDIDO section */
+.pedido-sec{{background:#060d06;border-bottom:2px solid #1a3a1a;padding:12px 24px 14px;display:none;}}
+.pedido-sec.open{{display:block;}}
+.pedido-sec-title{{font-family:"Arial Black",Arial,sans-serif;font-size:11px;color:#22c55e;letter-spacing:.5px;font-weight:900;margin-bottom:10px;}}
+.pedido-sec table{{width:100%;border-collapse:collapse;}}
+.pedido-sec th{{background:#0a1a0a;color:#555;font-size:10px;letter-spacing:.5px;padding:5px 10px;text-align:left;font-weight:700;}}
+.pedido-sec td{{padding:6px 10px;border-bottom:1px solid #0d1a0d;font-size:12px;white-space:nowrap;}}
+.btn-llego{{background:#1a3a1a;border:1px solid #3a6a3a;color:#22c55e;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;}}
+.btn-llego:hover{{background:#224422;border-color:#22c55e;}}
+.btn-despedido{{background:none;border:1px solid #2a2a2a;color:#555;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:10px;margin-left:4px;}}
+.btn-despedido:hover{{border-color:#666;color:#888;}}
+/* Historial tab */
+.hist-toolbar{{display:flex;gap:10px;padding:12px 24px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}}
+.hist-wrap{{overflow-x:auto;max-height:calc(100vh - 220px);margin:8px 24px 0;border:1px solid var(--border);border-radius:6px;}}
+.tipo-badge{{display:inline-block;font-size:9px;font-weight:900;padding:2px 7px;border-radius:2px;letter-spacing:.5px;}}
+.tipo-urgente{{background:#2e0808;color:var(--err);}}
+.tipo-carton{{background:#0a1e0a;color:#22c55e;}}
+.tipo-pedido{{background:#0d1a2e;color:#60a5fa;}}
+.tipo-llego{{background:#1a3a1a;color:#4ade80;font-family:"Arial Black",Arial,sans-serif;}}
+.hist-del{{background:none;border:1px solid #2a2a2a;color:#555;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;}}
+.hist-del:hover{{border-color:var(--err);color:var(--err);}}
+/* Modal llegó */
+#llego-modal{{display:none;position:fixed;inset:0;z-index:10000;background:#0009;align-items:center;justify-content:center;}}
+#llego-modal.open{{display:flex;}}
 /* Modal urgente */
 #urg-modal{{display:none;position:fixed;inset:0;z-index:10000;background:#0009;align-items:center;justify-content:center;}}
 #urg-modal.open{{display:flex;}}
@@ -314,6 +338,7 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
 <div class="tabs">
   <button class="tab-btn active" id="tab-ins-btn" onclick="switchTab('ins',this)">INSUMOS</button>
   <button class="tab-btn" id="tab-cart-btn" onclick="switchTab('cart',this)">CARTONES</button>
+  <button class="tab-btn" id="tab-hist-btn" onclick="switchTab('hist',this)">HISTORIAL</button>
 </div>
 
 <!-- ══ INSUMOS ══ -->
@@ -329,6 +354,11 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
     <button class="desuso-toggle" onclick="toggleDesusoPanel('ins')">Ver desuso</button>
   </div>
   <div class="cnt" id="ins-cnt"></div>
+  <div class="pedido-sec" id="ins-pedido">
+    <div class="pedido-sec-title">✅ YA PEDIDO</div>
+    <table><thead><tr><th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK DEP.</th><th>CANT. PEDIDA</th><th>QUIÉN PIDIÓ</th><th></th></tr></thead>
+    <tbody id="ins-pedido-tbody"></tbody></table>
+  </div>
   <div class="desuso-section" id="ins-desuso">
     <div style="color:#7ef7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">ARTÍCULOS EN DESUSO</div>
     <table>
@@ -387,6 +417,11 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
     <button class="desuso-toggle" onclick="toggleDesusoPanel('cart')">Ver desuso</button>
   </div>
   <div class="cnt" id="cart-cnt"></div>
+  <div class="pedido-sec" id="cart-pedido">
+    <div class="pedido-sec-title">✅ YA PEDIDO</div>
+    <table><thead><tr><th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK DEP.</th><th>CANT. PEDIDA</th><th>QUIÉN PIDIÓ</th><th></th></tr></thead>
+    <tbody id="cart-pedido-tbody"></tbody></table>
+  </div>
   <div class="desuso-section" id="cart-desuso">
     <div style="color:#7ef7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">CARTONES EN DESUSO</div>
     <table>
@@ -415,6 +450,57 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
   <div class="pag" id="cart-pag"></div>
 </div>
 
+<!-- ══ HISTORIAL ══ -->
+<div id="sec-hist" class="section">
+  <div class="hist-toolbar">
+    <select id="hist-tipo" onchange="renderHistorial()" style="background:#1a1a1a;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:12px;">
+      <option value="">Todos los eventos</option>
+      <option value="urgente">Urgentes</option>
+      <option value="carton">Cartones solicitados</option>
+      <option value="pedido">Pedidos realizados</option>
+      <option value="llego">Llegó</option>
+    </select>
+    <input type="text" id="hist-bus" placeholder="Buscar artículo o persona..." oninput="renderHistorial()"
+      style="background:#1a1a1a;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:12px;width:240px;">
+    <span id="hist-cnt" style="color:var(--muted);font-size:11px;"></span>
+    <button onclick="limpiarHistorialFiltrado()" style="background:none;border:1px solid #333;color:#666;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;">Eliminar filtrados</button>
+  </div>
+  <div class="hist-wrap">
+    <table>
+      <thead><tr>
+        <th style="min-width:130px;">FECHA</th>
+        <th>TIPO</th>
+        <th>ARTÍCULO / DESCRIPCIÓN</th>
+        <th>QUIÉN</th>
+        <th class="num" style="min-width:80px;">CANTIDAD</th>
+        <th style="min-width:160px;">NOTA</th>
+        <th style="width:70px;"></th>
+      </tr></thead>
+      <tbody id="hist-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal llegó -->
+<div id="llego-modal">
+  <div class="urg-mbox">
+    <div class="urg-mtitle" style="color:#22c55e;">✓ LLEGÓ — REGISTRAR ENTRADA</div>
+    <div class="urg-mart" id="llego-modal-art"></div>
+    <div class="urg-mfield">
+      <span>CANTIDAD RECIBIDA</span>
+      <input id="llego-cant" type="number" min="1" placeholder="0" style="width:140px;">
+    </div>
+    <div class="urg-mfield">
+      <span>NOTA (OPCIONAL)</span>
+      <input id="llego-nota" type="text" placeholder="Observaciones...">
+    </div>
+    <div class="urg-mbtns">
+      <button class="urg-mcancel" onclick="cerrarModalLlego()">Cancelar</button>
+      <button class="urg-mconfirm" style="background:#0a2e0a;border-color:#22c55e;color:#22c55e;" onclick="confirmarLlego()">✓ CONFIRMAR LLEGÓ</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const DATASETS = {{
   ins:  {j_ins},
@@ -434,7 +520,7 @@ const SERVER = 'http://localhost:5001';
 
 // ── Datos compartidos (servidor + fallback localStorage) ─────
 const LS_KEY = 'insumos_shared_v2';
-let shared = {{ urgente:[], desuso:[], stock_minimo:{{}}, pedido_realizado:[], notas:{{}}, solicitudes_cartones:[] }};
+let shared = {{ urgente:[], desuso:[], stock_minimo:{{}}, pedido_realizado:[], notas:{{}}, solicitudes_cartones:[], historial:[] }};
 
 async function loadShared() {{
   try {{
@@ -446,6 +532,7 @@ async function loadShared() {{
     shared.pedido_realizado = shared.pedido_realizado || [];
     shared.notas            = shared.notas            || {{}};
     shared.solicitudes_cartones = shared.solicitudes_cartones || [];
+    shared.historial            = shared.historial            || [];
   }} catch(e) {{
     try {{ Object.assign(shared, JSON.parse(localStorage.getItem(LS_KEY)||'{{}}')); }} catch(e2) {{}}
   }}
@@ -562,7 +649,9 @@ function confirmarUrg() {{
   if (cant<=0) {{ document.getElementById('urg-cant').focus(); return; }}
   (shared.urgente=shared.urgente||[]).push({{cod:ctxCod, quien, cantidad:cant, fecha:new Date().toLocaleDateString('es-AR')}});
   shared.desuso = (shared.desuso||[]).filter(c=>c!==ctxCod);
-  saveShared({{urgente:shared.urgente, desuso:shared.desuso}});
+  const artUrg = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===ctxCod);
+  addHistorial({{tipo:'urgente', cod:ctxCod, descripcion:artUrg?artUrg.Descripcion:ctxCod, quien, cantidad:cant, nota:''}});
+  saveShared({{urgente:shared.urgente, desuso:shared.desuso, historial:shared.historial}});
   cerrarModalUrg();
   S.ins.filtrar(); S.cart.filtrar(); renderDesusoTables(); actualizarBadgesUrgente();
 }}
@@ -624,7 +713,12 @@ function switchTab(id, btn) {{
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('sec-'+id).classList.add('active');
-  renderKpis(id);
+  if (id==='hist') {{
+    document.getElementById('kpi-row').innerHTML='';
+    renderHistorial();
+  }} else {{
+    renderKpis(id);
+  }}
 }}
 function actualizarBadgeTab() {{
   const pend = (shared.solicitudes_cartones||[]).filter(s=>!s.atendido).length;
@@ -646,13 +740,25 @@ function renderKpis(id) {{
 
 // ── Pedido realizado checkbox ─────────────────────────────────
 function togglePedido(cod) {{
-  if (shared.pedido_realizado.includes(cod))
+  const yaTenia = (shared.pedido_realizado||[]).includes(cod);
+  if (yaTenia) {{
     shared.pedido_realizado = shared.pedido_realizado.filter(c=>c!==cod);
-  else
+  }} else {{
     shared.pedido_realizado.push(cod);
-  saveShared({{ pedido_realizado: shared.pedido_realizado }});
-  const row = document.querySelector(`tr[data-cod="${{cod}}"]`);
-  if (row) row.classList.toggle('pedido-done', shared.pedido_realizado.includes(cod));
+    const art = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===cod);
+    const urgInfo = getUrgenteInfo(cod);
+    addHistorial({{
+      tipo:'pedido',
+      cod,
+      descripcion: art ? art.Descripcion : cod,
+      quien: urgInfo && typeof urgInfo==='object' ? urgInfo.quien : '',
+      cantidad: urgInfo && typeof urgInfo==='object' ? urgInfo.cantidad : '',
+      nota: ''
+    }});
+  }}
+  saveShared({{ pedido_realizado: shared.pedido_realizado, historial: shared.historial }});
+  S.ins.filtrar(); S.cart.filtrar();
+  renderPedidoSections();
 }}
 
 // ── Solicitudes cartones ──────────────────────────────────────
@@ -679,7 +785,8 @@ function agregarSolicitud() {{
     descripcion: desc, codigo: cod, cantidad: cant, nota: nota,
     fecha: new Date().toLocaleString('es-AR'), atendido: false
   }});
-  saveShared({{ solicitudes_cartones: shared.solicitudes_cartones }});
+  addHistorial({{tipo:'carton', cod, descripcion:desc, quien:'', cantidad:cant, nota}});
+  saveShared({{ solicitudes_cartones: shared.solicitudes_cartones, historial: shared.historial }});
   artSel.value='';
   document.getElementById('sol-cant').value='';
   document.getElementById('sol-nota').value='';
@@ -705,10 +812,131 @@ function renderSolicitudes() {{
     </div>`).join('');
 }}
 
+// ── Historial ─────────────────────────────────────────────────
+function addHistorial(entry) {{
+  entry.id = Date.now().toString() + Math.random().toString(36).slice(2,6);
+  entry.fecha = new Date().toLocaleString('es-AR');
+  (shared.historial = shared.historial||[]).unshift(entry);
+}}
+
+function renderHistorial() {{
+  const tipo = document.getElementById('hist-tipo')?.value || '';
+  const bus  = (document.getElementById('hist-bus')?.value||'').toLowerCase().trim();
+  const tipoCls   = {{urgente:'tipo-urgente',carton:'tipo-carton',pedido:'tipo-pedido',llego:'tipo-llego'}};
+  const tipoLabel = {{urgente:'URGENTE',carton:'CARTON',pedido:'PEDIDO',llego:'✓ LLEGÓ'}};
+  const hist = (shared.historial||[]).filter(e => {{
+    if (tipo && e.tipo!==tipo) return false;
+    const hay = s => String(s||'').toLowerCase().includes(bus);
+    if (bus && !hay(e.descripcion) && !hay(e.quien) && !hay(e.cod) && !hay(e.nota)) return false;
+    return true;
+  }});
+  document.getElementById('hist-cnt').textContent = hist.length+' registro'+(hist.length!==1?'s':'');
+  document.getElementById('hist-tbody').innerHTML = hist.length ? hist.map(e=>`
+    <tr>
+      <td style="color:#555;font-size:11px;white-space:nowrap">${{e.fecha}}</td>
+      <td><span class="tipo-badge ${{tipoCls[e.tipo]||''}}">${{tipoLabel[e.tipo]||e.tipo}}</span></td>
+      <td>${{e.descripcion||''}} ${{e.cod?`<span style="color:#333;font-size:10px">${{e.cod}}</span>`:''}}</td>
+      <td style="color:#aaa">${{e.quien||'—'}}</td>
+      <td class="num" style="color:#aaa">${{e.cantidad||'—'}}</td>
+      <td><span contenteditable="true" spellcheck="false"
+            style="color:#666;cursor:text;border-radius:3px;padding:1px 5px;min-width:80px;display:inline-block;"
+            onblur="editarNotaHist('${{e.id}}',this.textContent)"
+          >${{e.nota||''}}</span></td>
+      <td><button class="hist-del" onclick="eliminarHistorial('${{e.id}}')">Eliminar</button></td>
+    </tr>`).join('') :
+    '<tr><td colspan="7" style="color:#333;padding:20px;text-align:center;">Sin registros</td></tr>';
+}}
+function editarNotaHist(id, nota) {{
+  const e = (shared.historial||[]).find(x=>x.id===id);
+  if (e) {{ e.nota=nota.trim(); saveShared({{historial:shared.historial}}); }}
+}}
+function eliminarHistorial(id) {{
+  shared.historial = (shared.historial||[]).filter(e=>e.id!==id);
+  saveShared({{historial:shared.historial}});
+  renderHistorial();
+}}
+function limpiarHistorialFiltrado() {{
+  const tipo = document.getElementById('hist-tipo')?.value||'';
+  const bus  = (document.getElementById('hist-bus')?.value||'').toLowerCase().trim();
+  if (!tipo && !bus) {{ if(!confirm('¿Eliminar todo el historial?')) return; }}
+  shared.historial = (shared.historial||[]).filter(e=>{{
+    if(tipo && e.tipo!==tipo) return true;
+    const hay=s=>String(s||'').toLowerCase().includes(bus);
+    if(bus && !hay(e.descripcion)&&!hay(e.quien)&&!hay(e.cod)&&!hay(e.nota)) return true;
+    return false;
+  }});
+  saveShared({{historial:shared.historial}});
+  renderHistorial();
+}}
+
+// ── YA PEDIDO section ─────────────────────────────────────────
+function renderPedidoSections() {{
+  ['ins','cart'].forEach(id => {{
+    const rows = DATASETS[id].filter(r =>
+      (shared.pedido_realizado||[]).includes(r.Codigo) && !(shared.desuso||[]).includes(r.Codigo)
+    );
+    const sec = document.getElementById(id+'-pedido');
+    if (!sec) return;
+    if (rows.length===0) {{ sec.classList.remove('open'); return; }}
+    sec.classList.add('open');
+    document.getElementById(id+'-pedido-tbody').innerHTML = rows.map(r => {{
+      const urgInfo = getUrgenteInfo(r.Codigo);
+      const cant  = urgInfo && typeof urgInfo==='object' ? urgInfo.cantidad : '—';
+      const quien = urgInfo && typeof urgInfo==='object' ? urgInfo.quien    : '—';
+      return `<tr>
+        <td style="color:#555;font-size:11px">${{r.Codigo}}</td>
+        <td>${{r.Descripcion}}</td>
+        <td class="num" style="color:#aaa">${{r.StockActual}}</td>
+        <td class="num" style="color:#22c55e;font-weight:700">${{cant}}</td>
+        <td style="color:#aaa">${{quien}}</td>
+        <td>
+          <button class="btn-llego" onclick="abrirModalLlego('${{r.Codigo}}')">✓ LLEGÓ</button>
+          <button class="btn-despedido" onclick="togglePedido('${{r.Codigo}}')">Desmarcar</button>
+        </td>
+      </tr>`;
+    }}).join('');
+  }});
+}}
+
+// ── Modal LLEGÓ ───────────────────────────────────────────────
+let llegoCod = null;
+function abrirModalLlego(cod) {{
+  llegoCod = cod;
+  const art = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===cod);
+  const urgInfo = getUrgenteInfo(cod);
+  document.getElementById('llego-modal-art').textContent = art ? art.Descripcion : cod;
+  document.getElementById('llego-cant').value = urgInfo&&typeof urgInfo==='object' ? urgInfo.cantidad : '';
+  document.getElementById('llego-nota').value = '';
+  document.getElementById('llego-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('llego-cant').focus(), 60);
+}}
+function cerrarModalLlego() {{
+  document.getElementById('llego-modal').classList.remove('open');
+}}
+function confirmarLlego() {{
+  const cant = parseInt(document.getElementById('llego-cant').value)||0;
+  const nota = document.getElementById('llego-nota').value.trim();
+  const art = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===llegoCod);
+  const urgInfo = getUrgenteInfo(llegoCod);
+  addHistorial({{
+    tipo:'llego', cod:llegoCod,
+    descripcion: art ? art.Descripcion : llegoCod,
+    quien: urgInfo&&typeof urgInfo==='object' ? urgInfo.quien : '',
+    cantidad: cant, nota
+  }});
+  shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c=>c!==llegoCod);
+  shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==llegoCod);
+  saveShared({{pedido_realizado:shared.pedido_realizado, urgente:shared.urgente, historial:shared.historial}});
+  cerrarModalLlego();
+  S.ins.filtrar(); S.cart.filtrar();
+  renderPedidoSections(); actualizarBadgesUrgente();
+}}
+document.getElementById('llego-modal').addEventListener('click', e=>{{ if(e.target===e.currentTarget) cerrarModalLlego(); }});
+
 // ── Sección genérica ──────────────────────────────────────────
 function makeSection(id) {{
   const data = DATASETS[id];
-  let filt = data.filter(r => r.Consumido > 0 && !shared.desuso.includes(r.Codigo));
+  let filt = data.filter(r => r.Consumido > 0 && !shared.desuso.includes(r.Codigo) && !(shared.pedido_realizado||[]).includes(r.Codigo));
   let pg = 1, sortCol = -1, sortDir = 1, critico = false;
 
   const sel = document.getElementById(id+'-prov');
@@ -721,7 +949,8 @@ function makeSection(id) {{
     const bus     = document.getElementById(id+'-bus').value.toLowerCase().trim();
     const sinCons = document.getElementById(id+'-sincons').checked;
     filt = data.filter(r => {{
-      if (shared.desuso.includes(r.Codigo)) return false;
+      if ((shared.desuso||[]).includes(r.Codigo)) return false;
+      if ((shared.pedido_realizado||[]).includes(r.Codigo)) return false;
       if (critico && !(r.StockActual<=0 || r.Consumido>r.StockActual)) return false;
       if (!sinCons && !critico && r.Consumido===0) return false;
       if (prov && r.Proveedor!==prov) return false;
@@ -831,6 +1060,7 @@ loadShared().then(() => {{
   S.cart.render();
   poblarSelectCartones();
   renderSolicitudes();
+  renderPedidoSections();
   actualizarBadgeTab();
   actualizarBadgesUrgente();
   renderDesusoTables();

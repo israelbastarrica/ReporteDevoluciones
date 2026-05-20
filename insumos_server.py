@@ -35,6 +35,7 @@ def _load():
         'pedido_realizado': [],
         'notas': {},
         'solicitudes_cartones': [],
+        'historial': [],
     }
 
 
