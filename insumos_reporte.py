@@ -100,7 +100,7 @@ df = df.sort_values(['Proveedor', 'Codigo']).reset_index(drop=True)
 df = df[['Proveedor', 'Codigo', 'Descripcion', 'Unidad', 'Consumido', 'StockActual']]
 
 # Separar cartones del resto
-es_carton = df['Descripcion'].str.upper().str.startswith('CART')
+es_carton = df['Descripcion'].str.upper().str.startswith('CARTON')
 df_carton  = df[es_carton].copy()
 df_insumos = df[~es_carton].copy()
 
