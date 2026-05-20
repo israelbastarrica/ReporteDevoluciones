@@ -15,46 +15,27 @@ from config import SERVER, DB_CENTRAL, USER, PASSWORD
 
 warnings.filterwarnings('ignore', category=UserWarning)
 
-CSV_PATH = r'C:\Users\Usuario\Desktop\STOCKINSUMOS.135.csv'
-OUTPUT   = r'C:\REPORTESDEVOLUCIONES\insumos.html'
-ANIO, MES = date.today().year, date.today().month
+OUTPUT = r'C:\REPORTESDEVOLUCIONES\insumos.html'
 
 UNIDADES_ESPECIALES = {
     'ZZ0000111': 'Pack x6',
     'ZZ0000149': 'Caja x80',
 }
 UNIDAD_DEFAULT = 'Unidad'
+DB_MARKET = 'MARKET'
 
 # ---------------------------------------------------------------------------
-# 1. CSV — solo para nombre de proveedor por articulo
+# 1. Conexión a MARKET + stock actual desde COMB
 # ---------------------------------------------------------------------------
-print("Leyendo CSV (proveedores)...")
-csv = pd.read_csv(CSV_PATH, sep=';', dtype=str, encoding='latin-1')
-csv.columns = [c.strip().lstrip('﻿') for c in csv.columns]
-
-col_codigo = next((c for c in csv.columns if ('artículo' in c.lower() or 'articulo' in c.lower()) and 'descripci' not in c.lower()), None)
-col_nombre = next((c for c in csv.columns if 'proveedor' in c.lower() and 'nombre' in c.lower()), None)
-df_provs = csv[[col_codigo, col_nombre]].copy()
-df_provs.columns = ['Codigo', 'Proveedor']
-df_provs['Codigo']    = df_provs['Codigo'].str.strip()
-df_provs['Proveedor'] = df_provs['Proveedor'].str.strip()
-df_provs = df_provs.drop_duplicates('Codigo')
-print(f"  Articulos con proveedor: {len(df_provs)}")
-
-# ---------------------------------------------------------------------------
-# 2. Stock actual desde COMB (misma fuente que Dragonfish) + consumo del mes
-# ---------------------------------------------------------------------------
-print("Consultando DB (COMB + MSTOCK)...")
+print("Consultando DB...")
 conn = pyodbc.connect(
     f'DRIVER={{SQL Server}};SERVER={SERVER};'
-    f'DATABASE={DB_CENTRAL};UID={USER};PWD={PASSWORD}',
+    f'DATABASE={DB_MARKET};UID={USER};PWD={PASSWORD}',
     timeout=30
 )
 
 df_stock = pd.read_sql(f"""
-    SELECT
-        RTRIM(C.COART)                             AS Codigo,
-        SUM(C.COCANT)                              AS StockActual
+    SELECT RTRIM(C.COART) AS Codigo, SUM(C.COCANT) AS StockActual
     FROM {DB_CENTRAL}.Zoologic.COMB C
     WHERE LEFT(RTRIM(C.COART), 2) = 'ZZ'
     GROUP BY RTRIM(C.COART)
@@ -62,48 +43,47 @@ df_stock = pd.read_sql(f"""
 df_stock['StockActual'] = df_stock['StockActual'].fillna(0).astype(int)
 print(f"  Articulos ZZ* en COMB: {len(df_stock)}")
 
+# ---------------------------------------------------------------------------
+# 2. Demanda desde PedidosInsumos (MARKET) con proveedor desde Dragonfish
+# ---------------------------------------------------------------------------
 df_consumo = pd.read_sql(f"""
-    WITH UltimaEntrada AS (
-        SELECT RTRIM(LTRIM(DET.MART)) AS Codigo, MAX(MS.FECHA) AS FechaUltima
-        FROM {DB_CENTRAL}.Zoologic.MSTOCK MS
-        INNER JOIN {DB_CENTRAL}.Zoologic.DETMSTOCK DET ON DET.NUMR = MS.CODIGO
-        WHERE MS.DIRMOV = 1
-          AND (MS.ANULADO IS NULL OR MS.ANULADO = 0)
-          AND LEFT(RTRIM(DET.MART), 2) = 'ZZ'
-        GROUP BY RTRIM(LTRIM(DET.MART))
+    WITH Consumos AS (
+        SELECT RTRIM(R.ARTCOD) AS Codigo, R.Cantidad
+        FROM PedidosInsumosRegistro R
+        WHERE R.Eliminado = 0
+
+        UNION ALL
+
+        SELECT RTRIM(D.ARTCOD) AS Codigo,
+               ISNULL(D.CantidadEnviada, D.Cantidad) AS Cantidad
+        FROM PedidosInsumosDetalle D
+        INNER JOIN PedidosInsumos P ON D.IDPedido = P.ID
+        WHERE D.Eliminado = 0 AND P.Eliminado = 0
+          AND ISNULL(D.Existencia, 1) <> 0
+          AND ISNULL(D.CantidadEnviada, D.Cantidad) > 0
+          AND P.FechaEnviado IS NOT NULL
     )
     SELECT
-        RTRIM(LTRIM(DET.MART))              AS Codigo,
-        SUM(DET.CANTI)                      AS Consumido
-    FROM {DB_CENTRAL}.Zoologic.MSTOCK MS
-    INNER JOIN {DB_CENTRAL}.Zoologic.DETMSTOCK DET ON DET.NUMR = MS.CODIGO
-    LEFT  JOIN UltimaEntrada UE ON RTRIM(LTRIM(DET.MART)) = UE.Codigo
-    WHERE MS.DIRMOV = 2
-      AND MS.MOTIVO = 13
-      AND (MS.ANULADO IS NULL OR MS.ANULADO = 0)
-      AND LEFT(RTRIM(DET.MART), 2) = 'ZZ'
-      AND (UE.FechaUltima IS NULL OR MS.FECHA > UE.FechaUltima)
-    GROUP BY RTRIM(LTRIM(DET.MART))
+        ISNULL(RTRIM(PROV.CLNOM), 'SIN PROVEEDOR')       AS Proveedor,
+        C.Codigo,
+        ISNULL(RTRIM(ART.ARTDES), C.Codigo)               AS Descripcion,
+        SUM(C.Cantidad)                                    AS Consumido
+    FROM Consumos C
+    LEFT JOIN {DB_CENTRAL}.Zoologic.ART  ART  WITH(NOLOCK) ON C.Codigo = RTRIM(ART.ARTCOD)
+    LEFT JOIN {DB_CENTRAL}.Zoologic.PROV PROV WITH(NOLOCK) ON ART.ARTFAB = PROV.CLCOD
+    GROUP BY ISNULL(RTRIM(PROV.CLNOM), 'SIN PROVEEDOR'), C.Codigo, RTRIM(ART.ARTDES)
+    ORDER BY Proveedor ASC, C.Codigo ASC
 """, conn)
-print(f"  Articulos con consumo desde ultima reposicion: {len(df_consumo)}")
+conn.close()
+print(f"  Articulos con demanda registrada: {len(df_consumo)}")
 
 # ---------------------------------------------------------------------------
 # 3. Merge y limpieza
 # ---------------------------------------------------------------------------
-# Descripcion desde ART
-df_art = pd.read_sql(f"""
-    SELECT RTRIM(ARTCOD) AS Codigo, RTRIM(ARTDES) AS Descripcion
-    FROM {DB_CENTRAL}.Zoologic.ART
-    WHERE LEFT(RTRIM(ARTCOD), 2) = 'ZZ'
-""", conn)
-conn.close()
-
-df = df_stock.merge(df_consumo, on='Codigo', how='outer')
-df = df.merge(df_art,   on='Codigo', how='left')
-df = df.merge(df_provs, on='Codigo', how='left')
+df = df_consumo.merge(df_stock, on='Codigo', how='outer')
 
 df['Descripcion'] = df['Descripcion'].fillna(df['Codigo'])
-df['Proveedor']   = df['Proveedor'].fillna('(Sin proveedor)')
+df['Proveedor']   = df['Proveedor'].fillna('SIN PROVEEDOR')
 df['StockActual'] = df['StockActual'].fillna(0).astype(int)
 df['Consumido']   = df['Consumido'].fillna(0).astype(int)
 df['Unidad']      = df['Codigo'].map(UNIDADES_ESPECIALES).fillna(UNIDAD_DEFAULT)
@@ -326,7 +306,7 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
 <div class="page-header">
   <div>
     <div class="page-title">STOCK DE INSUMOS</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:3px;">Consumo desde última reposición &nbsp;·&nbsp; Generado {ahora}</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:3px;">Demanda registrada en el sistema &nbsp;·&nbsp; Generado {ahora}</div>
   </div>
   <div class="nav-links">
     <a href="home.html">INICIO</a>
@@ -760,7 +740,7 @@ function renderKpis(id) {{
   const k = KPI_DATA[id];
   document.getElementById('kpi-row').innerHTML = `
     <div class="kpi"><div class="kpi-val">${{k.arts}}</div><div class="kpi-label">ARTÍCULOS</div><div class="kpi-sub">${{k.provs}} proveedores</div></div>
-    <div class="kpi"><div class="kpi-val">${{fmt(k.consumo)}}</div><div class="kpi-label">CONSUMIDO DESDE REPOSICIÓN</div><div class="kpi-sub">reset al ingresar stock</div></div>
+    <div class="kpi"><div class="kpi-val">${{fmt(k.consumo)}}</div><div class="kpi-label">DEMANDA TOTAL</div><div class="kpi-sub">registrada en el sistema</div></div>
     <div class="kpi"><div class="kpi-val ${{k.sinStock>0?'warn':''}}">${{k.sinStock}}</div><div class="kpi-label">SIN STOCK EN DEPÓSITO</div><div class="kpi-sub">artículos con consumo activo</div></div>
   `;
 }}
