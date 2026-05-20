@@ -22,6 +22,15 @@ body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-si
 .card-arrow{color:#444;font-size:18px;margin-top:4px;align-self:flex-end;}
 .card:hover .card-arrow{color:var(--accent);}
 .badge-new{display:inline-block;background:#1a2e1a;color:#22c55e;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.5px;margin-left:6px;vertical-align:middle;}
+.card{position:relative;}
+.card-menu-btn{position:absolute;top:8px;right:10px;background:none;border:none;color:#444;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;border-radius:4px;z-index:2;}
+.card-menu-btn:hover{color:var(--accent);background:#222;}
+.card-menu{position:absolute;top:30px;right:8px;background:#1e1e1e;border:1px solid var(--border);border-radius:5px;z-index:10;min-width:130px;display:none;box-shadow:0 4px 12px #000a;}
+.card-menu.open{display:block;}
+.card-menu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:9px 14px;cursor:pointer;font-size:12px;}
+.card-menu button:hover{background:#2a2a2a;color:var(--accent);}
+.btn-mostrar{background:#1e1e1e;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;display:none;margin-left:auto;}
+.btn-mostrar:hover{border-color:var(--accent);color:var(--accent);}
 </style>
 </head>
 <body>
@@ -31,49 +40,67 @@ body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-si
     <div class="logo">MARKET</div>
     <div class="subtitle">SISTEMA DE REPORTES INTERNO</div>
   </div>
+  <button class="btn-mostrar" id="btnMostrar" onclick="mostrarTodas()">Mostrar ocultos</button>
 </div>
 
 <div class="content">
 
-  <div class="section-title">OPERACIONES</div>
+  <div class="section-title">LOGÍSTICA</div>
   <div class="grid">
 
-    <a class="card" href="index.html">
-      <div class="card-icon">&#8617;</div>
-      <div class="card-title">DEVOLUCIONES</div>
-      <div class="card-desc">Control de devoluciones por proveedor. Seguimiento de artículos devueltos y estado de aprobación.</div>
-      <div class="card-arrow">&#8594;</div>
-    </a>
-
-    <a class="card" href="envios.html">
-      <div class="card-icon">&#128666;</div>
-      <div class="card-title">ENVÍOS</div>
-      <div class="card-desc">Seguimiento de envíos entre locales. Estado y detalle de remitos generados.</div>
-      <div class="card-arrow">&#8594;</div>
-    </a>
-
-    <a class="card" href="control_remitos.html">
-      <div class="card-icon">&#9989;</div>
-      <div class="card-title">CONTROL DE REMITOS<span class="badge-new">NUEVO</span></div>
-      <div class="card-desc">Estado de remitos del día por local destino: aceptados, rechazados y pendientes de confirmación.</div>
-      <div class="card-arrow">&#8594;</div>
-    </a>
-
-    <a class="card" href="pendientes.html">
-      <div class="card-icon">&#9203;</div>
-      <div class="card-title">PENDIENTES</div>
-      <div class="card-desc">Artículos pendientes de aprobación o procesamiento en el sistema.</div>
-      <div class="card-arrow">&#8594;</div>
-    </a>
-
-    <a class="card" href="logistica.html">
+    <a class="card" id="card-logistica" href="logistica.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-logistica')">&#8942;</button>
+      <div class="card-menu" id="menu-card-logistica"><button onclick="ocultarCard(event,'card-logistica')">Ocultar</button></div>
       <div class="card-icon">&#128230;</div>
       <div class="card-title">LOGÍSTICA ENTRANTE</div>
       <div class="card-desc">Pedidos pendientes a proveedores y mercadería de locales en tránsito hacia Central.</div>
       <div class="card-arrow">&#8594;</div>
     </a>
 
-    <a class="card" href="insumos.html">
+    <a class="card" id="card-control-remitos" href="control_remitos.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-control-remitos')">&#8942;</button>
+      <div class="card-menu" id="menu-card-control-remitos"><button onclick="ocultarCard(event,'card-control-remitos')">Ocultar</button></div>
+      <div class="card-icon">&#9989;</div>
+      <div class="card-title">CONTROL DE REMITOS<span class="badge-new">NUEVO</span></div>
+      <div class="card-desc">Estado de remitos del día por local destino: aceptados, rechazados y pendientes de confirmación.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" id="card-pendientes" href="pendientes.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-pendientes')">&#8942;</button>
+      <div class="card-menu" id="menu-card-pendientes"><button onclick="ocultarCard(event,'card-pendientes')">Ocultar</button></div>
+      <div class="card-icon">&#9203;</div>
+      <div class="card-title">PENDIENTES</div>
+      <div class="card-desc">Artículos pendientes de aprobación o procesamiento en el sistema.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" id="card-devoluciones" href="index.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-devoluciones')">&#8942;</button>
+      <div class="card-menu" id="menu-card-devoluciones"><button onclick="ocultarCard(event,'card-devoluciones')">Ocultar</button></div>
+      <div class="card-icon">&#8617;</div>
+      <div class="card-title">DEVOLUCIONES DE LOCALES</div>
+      <div class="card-desc">Seguimiento de artículos devueltos por los locales y estado de aprobación.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+    <a class="card" id="card-envios" href="envios.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-envios')">&#8942;</button>
+      <div class="card-menu" id="menu-card-envios"><button onclick="ocultarCard(event,'card-envios')">Ocultar</button></div>
+      <div class="card-icon">&#128666;</div>
+      <div class="card-title">ENVÍOS</div>
+      <div class="card-desc">Seguimiento de envíos entre locales. Estado y detalle de remitos generados.</div>
+      <div class="card-arrow">&#8594;</div>
+    </a>
+
+  </div>
+
+  <div class="section-title">STOCK</div>
+  <div class="grid">
+
+    <a class="card" id="card-insumos" href="insumos.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-insumos')">&#8942;</button>
+      <div class="card-menu" id="menu-card-insumos"><button onclick="ocultarCard(event,'card-insumos')">Ocultar</button></div>
       <div class="card-icon">&#128722;</div>
       <div class="card-title">INSUMOS Y CARTONES</div>
       <div class="card-desc">Stock actual e insumos consumidos en el mes, agrupados por proveedor. Incluye notas para Logística y Compras.</div>
@@ -82,34 +109,42 @@ body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-si
 
   </div>
 
-  <div class="section-title">ANÁLISIS</div>
+  <div class="section-title">ANÁLISIS <span style="font-family:Arial,sans-serif;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:0;text-transform:none;">— sobre devoluciones de los locales</span></div>
   <div class="grid">
 
-    <a class="card" href="dashboard.html">
+    <a class="card" id="card-dashboard" href="dashboard.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-dashboard')">&#8942;</button>
+      <div class="card-menu" id="menu-card-dashboard"><button onclick="ocultarCard(event,'card-dashboard')">Ocultar</button></div>
       <div class="card-icon">&#128202;</div>
       <div class="card-title">DASHBOARD</div>
-      <div class="card-desc">Resumen ejecutivo con métricas clave de operaciones, ventas y movimientos del período.</div>
+      <div class="card-desc">Resumen ejecutivo de devoluciones de los locales: métricas clave, estados y movimientos del período.</div>
       <div class="card-arrow">&#8594;</div>
     </a>
 
-    <a class="card" href="AUDITORIA_MARKET.html">
+    <a class="card" id="card-auditoria" href="AUDITORIA_MARKET.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-auditoria')">&#8942;</button>
+      <div class="card-menu" id="menu-card-auditoria"><button onclick="ocultarCard(event,'card-auditoria')">Ocultar</button></div>
       <div class="card-icon">&#128269;</div>
       <div class="card-title">AUDITORÍA MARKET</div>
-      <div class="card-desc">Auditoría de movimientos y operaciones del sistema MARKET.</div>
+      <div class="card-desc">Auditoría de devoluciones de los locales registradas en el sistema MARKET.</div>
       <div class="card-arrow">&#8594;</div>
     </a>
 
-    <a class="card" href="AUDITORIA_MARKET_2026.html">
+    <a class="card" id="card-auditoria-2026" href="AUDITORIA_MARKET_2026.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-auditoria-2026')">&#8942;</button>
+      <div class="card-menu" id="menu-card-auditoria-2026"><button onclick="ocultarCard(event,'card-auditoria-2026')">Ocultar</button></div>
       <div class="card-icon">&#128197;</div>
       <div class="card-title">AUDITORÍA 2026</div>
-      <div class="card-desc">Auditoría detallada de operaciones del ejercicio 2026.</div>
+      <div class="card-desc">Auditoría detallada de devoluciones de los locales del ejercicio 2026.</div>
       <div class="card-arrow">&#8594;</div>
     </a>
 
-    <a class="card" href="AUDITORIA_MARKET_HISTORICO.html">
+    <a class="card" id="card-auditoria-hist" href="AUDITORIA_MARKET_HISTORICO.html">
+      <button class="card-menu-btn" onclick="toggleMenu(event,'card-auditoria-hist')">&#8942;</button>
+      <div class="card-menu" id="menu-card-auditoria-hist"><button onclick="ocultarCard(event,'card-auditoria-hist')">Ocultar</button></div>
       <div class="card-icon">&#128203;</div>
       <div class="card-title">AUDITORÍA HISTÓRICO</div>
-      <div class="card-desc">Registro histórico acumulado de auditorías anteriores.</div>
+      <div class="card-desc">Registro histórico acumulado de auditorías de devoluciones de los locales.</div>
       <div class="card-arrow">&#8594;</div>
     </a>
 
@@ -117,5 +152,49 @@ body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-si
 
 </div>
 
+<script>
+function toggleMenu(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const menu = document.getElementById('menu-' + id);
+  const wasOpen = menu.classList.contains('open');
+  document.querySelectorAll('.card-menu.open').forEach(m => m.classList.remove('open'));
+  if (!wasOpen) menu.classList.add('open');
+}
+
+function ocultarCard(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const ocultos = JSON.parse(localStorage.getItem('cards_ocultas') || '[]');
+  if (!ocultos.includes(id)) ocultos.push(id);
+  localStorage.setItem('cards_ocultas', JSON.stringify(ocultos));
+  document.getElementById(id).style.display = 'none';
+  document.getElementById('menu-' + id).classList.remove('open');
+  actualizarBtnMostrar();
+}
+
+function mostrarTodas() {
+  localStorage.removeItem('cards_ocultas');
+  document.querySelectorAll('.card').forEach(c => c.style.display = '');
+  document.getElementById('btnMostrar').style.display = 'none';
+}
+
+function actualizarBtnMostrar() {
+  const ocultos = JSON.parse(localStorage.getItem('cards_ocultas') || '[]');
+  document.getElementById('btnMostrar').style.display = ocultos.length > 0 ? 'inline-block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const ocultos = JSON.parse(localStorage.getItem('cards_ocultas') || '[]');
+  ocultos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  actualizarBtnMostrar();
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.card-menu.open').forEach(m => m.classList.remove('open'));
+  });
+});
+</script>
 </body>
 </html>
