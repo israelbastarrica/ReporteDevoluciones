@@ -292,6 +292,15 @@ tbody tr.pedido-done td{{opacity:.5;}}
     <button class="desuso-toggle" onclick="toggleDesusoPanel('ins')">Ver desuso</button>
   </div>
   <div class="cnt" id="ins-cnt"></div>
+  <div class="desuso-section" id="ins-desuso">
+    <div style="color:#7ef7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">ARTÍCULOS EN DESUSO</div>
+    <table>
+      <thead><tr>
+        <th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK</th><th></th>
+      </tr></thead>
+      <tbody id="ins-desuso-tbody"></tbody>
+    </table>
+  </div>
   <div class="tbl-wrap" id="ins-wrap">
     <table>
       <thead><tr>
@@ -309,15 +318,6 @@ tbody tr.pedido-done td{{opacity:.5;}}
     </table>
   </div>
   <div class="pag" id="ins-pag"></div>
-  <div class="desuso-section" id="ins-desuso">
-    <div style="color:#555;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">ARTÍCULOS EN DESUSO</div>
-    <table>
-      <thead><tr>
-        <th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK</th><th></th>
-      </tr></thead>
-      <tbody id="ins-desuso-tbody"></tbody>
-    </table>
-  </div>
 </div>
 
 <!-- ══ CARTONES ══ -->
@@ -350,6 +350,15 @@ tbody tr.pedido-done td{{opacity:.5;}}
     <button class="desuso-toggle" onclick="toggleDesusoPanel('cart')">Ver desuso</button>
   </div>
   <div class="cnt" id="cart-cnt"></div>
+  <div class="desuso-section" id="cart-desuso">
+    <div style="color:#7ef7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">CARTONES EN DESUSO</div>
+    <table>
+      <thead><tr>
+        <th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK</th><th></th>
+      </tr></thead>
+      <tbody id="cart-desuso-tbody"></tbody>
+    </table>
+  </div>
   <div class="tbl-wrap" id="cart-wrap">
     <table>
       <thead><tr>
@@ -367,15 +376,6 @@ tbody tr.pedido-done td{{opacity:.5;}}
     </table>
   </div>
   <div class="pag" id="cart-pag"></div>
-  <div class="desuso-section" id="cart-desuso">
-    <div style="color:#555;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">CARTONES EN DESUSO</div>
-    <table>
-      <thead><tr>
-        <th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK</th><th></th>
-      </tr></thead>
-      <tbody id="cart-desuso-tbody"></tbody>
-    </table>
-  </div>
 </div>
 
 <script>
@@ -524,8 +524,11 @@ function ctxToggleDesuso() {{
 // ── Desuso panel ──────────────────────────────────────────────
 function toggleDesusoPanel(id) {{
   const el = document.getElementById(id+'-desuso');
-  el.classList.toggle('open');
+  const isOpen = el.classList.toggle('open');
   renderDesusoTables();
+  const btn = document.querySelector(`#sec-${{id}} .desuso-toggle`);
+  if (btn) btn.textContent = isOpen ? 'Ocultar desuso' : 'Ver desuso';
+  if (isOpen) el.scrollIntoView({{behavior:'smooth', block:'nearest'}});
 }}
 function renderDesusoTables() {{
   ['ins','cart'].forEach(id => {{
