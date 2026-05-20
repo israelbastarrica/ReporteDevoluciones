@@ -7,22 +7,29 @@ Uso:
     pip install flask
     python insumos_server.py
 
-Acceso desde el navegador:
-    http://<IP-DE-ESTA-PC>:5001/api/shared
+Acceso desde el navegador (todos en la red):
+    http://192.168.130.120:5001
 """
 import json
 import os
+import shutil
 from datetime import datetime
 
 try:
-    from flask import Flask, jsonify, request, Response
+    from flask import Flask, jsonify, request, Response, send_file
 except ImportError:
     print("ERROR: Flask no instalado. Ejecuta:  pip install flask")
     raise
 
-app = Flask(__name__)
-SHARED_FILE = os.path.join(os.path.dirname(__file__), 'insumos_shared.json')
+BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+app         = Flask(__name__)
+SHARED_FILE = os.path.join(BASE_DIR, 'insumos_shared.json')
+BACKUP_DIR  = os.path.join(BASE_DIR, 'backups')
 
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 def _load():
     if os.path.exists(SHARED_FILE):
@@ -35,7 +42,6 @@ def _load():
         'pedido_realizado': [],
         'notas': {},
         'solicitudes_cartones': [],
-        'historial': [],
     }
 
 
@@ -43,6 +49,16 @@ def _save(data):
     data['_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open(SHARED_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    _backup()
+
+
+def _backup():
+    """Guarda una copia diaria en backups/insumos_shared_YYYY-MM-DD.json"""
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+    hoy = datetime.now().strftime('%Y-%m-%d')
+    dest = os.path.join(BACKUP_DIR, f'insumos_shared_{hoy}.json')
+    if not os.path.exists(dest):
+        shutil.copy2(SHARED_FILE, dest)
 
 
 def _cors(resp):
@@ -55,6 +71,17 @@ def _cors(resp):
 @app.after_request
 def after(resp):
     return _cors(resp)
+
+
+# ---------------------------------------------------------------------------
+# Rutas
+# ---------------------------------------------------------------------------
+
+@app.route('/')
+@app.route('/insumos')
+def index():
+    """Sirve el HTML principal a todos en la red."""
+    return send_file(os.path.join(BASE_DIR, 'insumos.html'))
 
 
 @app.route('/api/shared', methods=['OPTIONS'])
@@ -77,10 +104,23 @@ def post_shared():
     return jsonify({'ok': True, 'updated': data.get('_updated')})
 
 
+@app.route('/api/backup', methods=['GET'])
+def list_backups():
+    """Lista los backups disponibles."""
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+    archivos = sorted(os.listdir(BACKUP_DIR), reverse=True)
+    return jsonify(archivos)
+
+
+# ---------------------------------------------------------------------------
+# Inicio
+# ---------------------------------------------------------------------------
+
 if __name__ == '__main__':
-    print('=' * 50)
-    print('  Servidor de insumos compartidos')
-    print('  http://0.0.0.0:5001')
+    print('=' * 55)
+    print('  Servidor de insumos compartidos — MARKET')
+    print('  Acceso desde la red:  http://192.168.130.120:5001')
     print('  Datos en:', SHARED_FILE)
-    print('=' * 50)
+    print('  Backups en:', BACKUP_DIR)
+    print('=' * 55)
     app.run(host='0.0.0.0', port=5001, debug=False)

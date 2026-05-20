@@ -44,9 +44,9 @@ df_stock['StockActual'] = df_stock['StockActual'].fillna(0).astype(int)
 print(f"  Articulos ZZ* en COMB: {len(df_stock)}")
 
 # ---------------------------------------------------------------------------
-# 2. Demanda desde PedidosInsumos (MARKET) con proveedor desde Dragonfish
+# 2. Demanda desde PedidosInsumos (solo Codigo + Consumido)
 # ---------------------------------------------------------------------------
-df_consumo = pd.read_sql(f"""
+df_consumo = pd.read_sql("""
     WITH Consumos AS (
         SELECT RTRIM(R.ARTCOD) AS Codigo, R.Cantidad
         FROM PedidosInsumosRegistro R
@@ -63,24 +63,31 @@ df_consumo = pd.read_sql(f"""
           AND ISNULL(D.CantidadEnviada, D.Cantidad) > 0
           AND P.FechaEnviado IS NOT NULL
     )
-    SELECT
-        ISNULL(RTRIM(PROV.CLNOM), 'SIN PROVEEDOR')       AS Proveedor,
-        C.Codigo,
-        ISNULL(RTRIM(ART.ARTDES), C.Codigo)               AS Descripcion,
-        SUM(C.Cantidad)                                    AS Consumido
-    FROM Consumos C
-    LEFT JOIN {DB_CENTRAL}.Zoologic.ART  ART  WITH(NOLOCK) ON C.Codigo = RTRIM(ART.ARTCOD)
-    LEFT JOIN {DB_CENTRAL}.Zoologic.PROV PROV WITH(NOLOCK) ON ART.ARTFAB = PROV.CLCOD
-    GROUP BY ISNULL(RTRIM(PROV.CLNOM), 'SIN PROVEEDOR'), C.Codigo, RTRIM(ART.ARTDES)
-    ORDER BY Proveedor ASC, C.Codigo ASC
+    SELECT Codigo, SUM(Cantidad) AS Consumido
+    FROM Consumos
+    GROUP BY Codigo
 """, conn)
-conn.close()
 print(f"  Articulos con demanda registrada: {len(df_consumo)}")
 
 # ---------------------------------------------------------------------------
-# 3. Merge y limpieza
+# 3. Descripcion y proveedor desde ART+PROV para TODOS los ZZ*
 # ---------------------------------------------------------------------------
-df = df_consumo.merge(df_stock, on='Codigo', how='outer')
+df_art = pd.read_sql(f"""
+    SELECT RTRIM(A.ARTCOD)                             AS Codigo,
+           RTRIM(A.ARTDES)                             AS Descripcion,
+           ISNULL(RTRIM(P.CLNOM), 'SIN PROVEEDOR')    AS Proveedor
+    FROM {DB_CENTRAL}.Zoologic.ART  A
+    LEFT JOIN {DB_CENTRAL}.Zoologic.PROV P ON A.ARTFAB = P.CLCOD
+    WHERE LEFT(RTRIM(A.ARTCOD), 2) = 'ZZ'
+""", conn)
+conn.close()
+print(f"  Articulos ZZ* en ART: {len(df_art)}")
+
+# ---------------------------------------------------------------------------
+# 4. Merge y limpieza
+# ---------------------------------------------------------------------------
+df = df_stock.merge(df_consumo, on='Codigo', how='outer')
+df = df.merge(df_art, on='Codigo', how='left')
 
 df['Descripcion'] = df['Descripcion'].fillna(df['Codigo'])
 df['Proveedor']   = df['Proveedor'].fillna('SIN PROVEEDOR')
@@ -993,7 +1000,6 @@ function makeSection(id) {{
       if ((shared.desuso||[]).includes(r.Codigo)) return false;
       if ((shared.pedido_realizado||[]).includes(r.Codigo)) return false;
       if (critico && !(r.StockActual<=0 || r.Consumido>r.StockActual)) return false;
-      if (!sinCons && !critico && r.Consumido===0) return false;
       if (prov && r.Proveedor!==prov) return false;
       if (bus && !(r.Codigo.toLowerCase().includes(bus)||r.Descripcion.toLowerCase().includes(bus))) return false;
       return true;
