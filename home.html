@@ -14,7 +14,7 @@ body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-si
 .content{padding:32px;}
 .section-title{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:13px;color:var(--muted);letter-spacing:1px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:40px;}
-.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px 22px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,background .15s;text-decoration:none;color:inherit;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px 22px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,background .15s;cursor:pointer;position:relative;}
 .card:hover{border-color:var(--accent);background:#181818;}
 .card-icon{font-size:26px;line-height:1;}
 .card-title{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:15px;color:var(--accent);letter-spacing:.5px;}
@@ -22,7 +22,6 @@ body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-si
 .card-arrow{color:#444;font-size:18px;margin-top:4px;align-self:flex-end;}
 .card:hover .card-arrow{color:var(--accent);}
 .badge-new{display:inline-block;background:#1a2e1a;color:#22c55e;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.5px;margin-left:6px;vertical-align:middle;}
-.card{position:relative;}
 .card-menu-btn{position:absolute;top:8px;right:10px;background:none;border:none;color:#444;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;border-radius:4px;z-index:2;}
 .card-menu-btn:hover{color:var(--accent);background:#222;}
 .card-menu{position:absolute;top:30px;right:8px;background:#1e1e1e;border:1px solid var(--border);border-radius:5px;z-index:10;min-width:130px;display:none;box-shadow:0 4px 12px #000a;}
@@ -48,113 +47,117 @@ body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;font-si
   <div class="section-title">LOGÍSTICA</div>
   <div class="grid">
 
-    <a class="card" id="card-logistica" href="logistica.html">
+    <div class="card" id="card-logistica" onclick="ir(event,'logistica.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-logistica')">&#8942;</button>
       <div class="card-menu" id="menu-card-logistica"><button onclick="ocultarCard(event,'card-logistica')">Ocultar</button></div>
       <div class="card-icon">&#128230;</div>
       <div class="card-title">LOGÍSTICA ENTRANTE</div>
       <div class="card-desc">Pedidos pendientes a proveedores y mercadería de locales en tránsito hacia Central.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
-    <a class="card" id="card-control-remitos" href="control_remitos.html">
+    <div class="card" id="card-control-remitos" onclick="ir(event,'control_remitos.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-control-remitos')">&#8942;</button>
       <div class="card-menu" id="menu-card-control-remitos"><button onclick="ocultarCard(event,'card-control-remitos')">Ocultar</button></div>
       <div class="card-icon">&#9989;</div>
       <div class="card-title">CONTROL DE REMITOS<span class="badge-new">NUEVO</span></div>
       <div class="card-desc">Estado de remitos del día por local destino: aceptados, rechazados y pendientes de confirmación.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
-    <a class="card" id="card-pendientes" href="pendientes.html">
+    <div class="card" id="card-pendientes" onclick="ir(event,'pendientes.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-pendientes')">&#8942;</button>
       <div class="card-menu" id="menu-card-pendientes"><button onclick="ocultarCard(event,'card-pendientes')">Ocultar</button></div>
       <div class="card-icon">&#9203;</div>
       <div class="card-title">PENDIENTES</div>
       <div class="card-desc">Artículos pendientes de aprobación o procesamiento en el sistema.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
-    <a class="card" id="card-devoluciones" href="index.html">
+    <div class="card" id="card-devoluciones" onclick="ir(event,'index.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-devoluciones')">&#8942;</button>
       <div class="card-menu" id="menu-card-devoluciones"><button onclick="ocultarCard(event,'card-devoluciones')">Ocultar</button></div>
       <div class="card-icon">&#8617;</div>
       <div class="card-title">DEVOLUCIONES DE LOCALES</div>
       <div class="card-desc">Seguimiento de artículos devueltos por los locales y estado de aprobación.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
-    <a class="card" id="card-envios" href="envios.html">
+    <div class="card" id="card-envios" onclick="ir(event,'envios.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-envios')">&#8942;</button>
       <div class="card-menu" id="menu-card-envios"><button onclick="ocultarCard(event,'card-envios')">Ocultar</button></div>
       <div class="card-icon">&#128666;</div>
       <div class="card-title">ENVÍOS</div>
       <div class="card-desc">Seguimiento de envíos entre locales. Estado y detalle de remitos generados.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
   </div>
 
   <div class="section-title">STOCK</div>
   <div class="grid">
 
-    <a class="card" id="card-insumos" href="insumos.html">
+    <div class="card" id="card-insumos" onclick="ir(event,'insumos.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-insumos')">&#8942;</button>
       <div class="card-menu" id="menu-card-insumos"><button onclick="ocultarCard(event,'card-insumos')">Ocultar</button></div>
       <div class="card-icon">&#128722;</div>
       <div class="card-title">INSUMOS Y CARTONES</div>
       <div class="card-desc">Stock actual e insumos consumidos en el mes, agrupados por proveedor. Incluye notas para Logística y Compras.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
   </div>
 
   <div class="section-title">ANÁLISIS <span style="font-family:Arial,sans-serif;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:0;text-transform:none;">— sobre devoluciones de los locales</span></div>
   <div class="grid">
 
-    <a class="card" id="card-dashboard" href="dashboard.html">
+    <div class="card" id="card-dashboard" onclick="ir(event,'dashboard.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-dashboard')">&#8942;</button>
       <div class="card-menu" id="menu-card-dashboard"><button onclick="ocultarCard(event,'card-dashboard')">Ocultar</button></div>
       <div class="card-icon">&#128202;</div>
       <div class="card-title">DASHBOARD</div>
       <div class="card-desc">Resumen ejecutivo de devoluciones de los locales: métricas clave, estados y movimientos del período.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
-    <a class="card" id="card-auditoria" href="AUDITORIA_MARKET.html">
+    <div class="card" id="card-auditoria" onclick="ir(event,'AUDITORIA_MARKET.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-auditoria')">&#8942;</button>
       <div class="card-menu" id="menu-card-auditoria"><button onclick="ocultarCard(event,'card-auditoria')">Ocultar</button></div>
       <div class="card-icon">&#128269;</div>
       <div class="card-title">AUDITORÍA MARKET</div>
       <div class="card-desc">Auditoría de devoluciones de los locales registradas en el sistema MARKET.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
-    <a class="card" id="card-auditoria-2026" href="AUDITORIA_MARKET_2026.html">
+    <div class="card" id="card-auditoria-2026" onclick="ir(event,'AUDITORIA_MARKET_2026.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-auditoria-2026')">&#8942;</button>
       <div class="card-menu" id="menu-card-auditoria-2026"><button onclick="ocultarCard(event,'card-auditoria-2026')">Ocultar</button></div>
       <div class="card-icon">&#128197;</div>
       <div class="card-title">AUDITORÍA 2026</div>
       <div class="card-desc">Auditoría detallada de devoluciones de los locales del ejercicio 2026.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
-    <a class="card" id="card-auditoria-hist" href="AUDITORIA_MARKET_HISTORICO.html">
+    <div class="card" id="card-auditoria-hist" onclick="ir(event,'AUDITORIA_MARKET_HISTORICO.html')">
       <button class="card-menu-btn" onclick="toggleMenu(event,'card-auditoria-hist')">&#8942;</button>
       <div class="card-menu" id="menu-card-auditoria-hist"><button onclick="ocultarCard(event,'card-auditoria-hist')">Ocultar</button></div>
       <div class="card-icon">&#128203;</div>
       <div class="card-title">AUDITORÍA HISTÓRICO</div>
       <div class="card-desc">Registro histórico acumulado de auditorías de devoluciones de los locales.</div>
       <div class="card-arrow">&#8594;</div>
-    </a>
+    </div>
 
   </div>
 
 </div>
 
 <script>
+function ir(e, url) {
+  if (e.target.closest('.card-menu-btn') || e.target.closest('.card-menu')) return;
+  window.location.href = url;
+}
+
 function toggleMenu(e, id) {
-  e.preventDefault();
   e.stopPropagation();
   const menu = document.getElementById('menu-' + id);
   const wasOpen = menu.classList.contains('open');
@@ -163,7 +166,6 @@ function toggleMenu(e, id) {
 }
 
 function ocultarCard(e, id) {
-  e.preventDefault();
   e.stopPropagation();
   const ocultos = JSON.parse(localStorage.getItem('cards_ocultas') || '[]');
   if (!ocultos.includes(id)) ocultos.push(id);
@@ -191,8 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.style.display = 'none';
   });
   actualizarBtnMostrar();
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.card-menu.open').forEach(m => m.classList.remove('open'));
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.card-menu-btn')) {
+      document.querySelectorAll('.card-menu.open').forEach(m => m.classList.remove('open'));
+    }
   });
 });
 </script>

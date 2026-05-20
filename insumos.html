@@ -81,6 +81,8 @@ tbody tr.pedido-done td{opacity:.5;}
 .sol-bar-title{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:11px;color:#7ef7a0;letter-spacing:1px;margin-bottom:10px;}
 .sol-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;}
 .sol-form label{display:flex;flex-direction:column;gap:4px;font-size:10px;color:#555;letter-spacing:.5px;}
+.sol-form select{background:#0c1a0c;border:1px solid #2a4a2a;color:var(--text);padding:6px 10px;border-radius:4px;font-size:12px;min-width:220px;}
+.sol-form select:focus{outline:none;border-color:#7ef7a0;}
 .sol-form input{background:#0c1a0c;border:1px solid #2a4a2a;color:var(--text);padding:6px 10px;border-radius:4px;font-size:12px;width:160px;}
 .sol-form input[type=number]{width:80px;}
 .sol-form input:focus{outline:none;border-color:#7ef7a0;}
@@ -171,8 +173,8 @@ tbody tr.pedido-done td{opacity:.5;}
   <div class="sol-bar">
     <div class="sol-bar-title">SOLICITUDES DE PRODUCCIÓN</div>
     <div class="sol-form">
-      <label>DESCRIPCIÓN / TALLE
-        <input type="text" id="sol-desc" placeholder="Ej: CARTON T38">
+      <label>CARTÓN
+        <select id="sol-art"><option value="">Seleccionar cartón...</option></select>
       </label>
       <label>CANTIDAD
         <input type="number" id="sol-cant" placeholder="0" min="1">
@@ -418,18 +420,31 @@ function togglePedido(cod) {
 }
 
 // ── Solicitudes cartones ──────────────────────────────────────
+function poblarSelectCartones() {
+  const sel = document.getElementById('sol-art');
+  const arts = [...DATASETS['cart']].sort((a,b)=>String(a.Descripcion).localeCompare(String(b.Descripcion),'es'));
+  arts.forEach(r => {
+    const o = document.createElement('option');
+    o.value = r.Codigo;
+    o.textContent = r.Descripcion;
+    sel.appendChild(o);
+  });
+}
+
 function agregarSolicitud() {
-  const desc = document.getElementById('sol-desc').value.trim();
+  const artSel = document.getElementById('sol-art');
+  const cod  = artSel.value.trim();
+  const desc = cod ? artSel.options[artSel.selectedIndex].text : '';
   const cant = parseInt(document.getElementById('sol-cant').value) || 0;
   const nota = document.getElementById('sol-nota').value.trim();
-  if (!desc || cant <= 0) { alert('Completá descripción y cantidad.'); return; }
+  if (!cod || cant <= 0) { alert('Seleccioná un cartón y la cantidad.'); return; }
   (shared.solicitudes_cartones = shared.solicitudes_cartones||[]).push({
     id: Date.now().toString(),
-    descripcion: desc, cantidad: cant, nota: nota,
+    descripcion: desc, codigo: cod, cantidad: cant, nota: nota,
     fecha: new Date().toLocaleString('es-AR'), atendido: false
   });
   saveShared({ solicitudes_cartones: shared.solicitudes_cartones });
-  document.getElementById('sol-desc').value='';
+  artSel.value='';
   document.getElementById('sol-cant').value='';
   document.getElementById('sol-nota').value='';
   renderSolicitudes();
@@ -567,6 +582,7 @@ loadShared().then(() => {
   renderKpis('ins');
   S.ins.render();
   S.cart.render();
+  poblarSelectCartones();
   renderSolicitudes();
   actualizarBadgeTab();
   renderDesusoTables();
