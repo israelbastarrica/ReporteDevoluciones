@@ -249,6 +249,23 @@ tbody tr.pedido-done td{{opacity:.5;}}
 .sol-vacas{{color:#2a4a2a;font-size:12px;font-style:italic;}}
 /* Badge solicitudes en tab */
 .tab-badge{{display:inline-block;background:var(--err);color:#fff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:10px;margin-left:5px;vertical-align:middle;}}
+/* Modal urgente */
+#urg-modal{{display:none;position:fixed;inset:0;z-index:10000;background:#0009;align-items:center;justify-content:center;}}
+#urg-modal.open{{display:flex;}}
+.urg-mbox{{background:#1a1a1a;border:1px solid #5a1a1a;border-radius:8px;padding:28px 32px;min-width:320px;max-width:420px;box-shadow:0 8px 32px #000d;}}
+.urg-mtitle{{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:14px;color:var(--err);letter-spacing:.5px;margin-bottom:6px;}}
+.urg-mart{{color:var(--muted);font-size:12px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #2a2a2a;}}
+.urg-mfield{{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;}}
+.urg-mfield span{{font-size:10px;color:#555;letter-spacing:.5px;font-weight:700;}}
+.urg-mfield input{{background:#111;border:1px solid #3a3a3a;color:#f0f0f0;padding:8px 12px;border-radius:4px;font-size:13px;}}
+.urg-mfield input:focus{{outline:none;border-color:var(--err);}}
+.urg-mbtns{{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}}
+.urg-mcancel{{background:none;border:1px solid #333;color:#888;padding:7px 18px;border-radius:4px;cursor:pointer;font-size:12px;}}
+.urg-mconfirm{{background:#2e0808;border:1px solid var(--err);color:var(--err);padding:7px 18px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.5px;}}
+.urg-mconfirm:hover{{background:#3e1010;}}
+/* Grupo urgente en tabla */
+tbody tr.group-urg{{background:#1a0808!important;border-left:3px solid var(--err);}}
+tbody tr.group-urg td{{color:var(--err)!important;}}
 </style>
 </head>
 <body>
@@ -257,6 +274,26 @@ tbody tr.pedido-done td{{opacity:.5;}}
 <div id="ctx-menu">
   <button onclick="ctxToggleUrgente()">⚡ <span id="ctx-urg-lbl">Marcar como URGENTE</span></button>
   <button onclick="ctxToggleDesuso()">🗑 <span id="ctx-des-lbl">Enviar a desuso</span></button>
+</div>
+
+<!-- Modal urgente -->
+<div id="urg-modal">
+  <div class="urg-mbox">
+    <div class="urg-mtitle">⚡ MARCAR COMO URGENTE</div>
+    <div class="urg-mart" id="urg-modal-art"></div>
+    <div class="urg-mfield">
+      <span>¿QUIÉN LO SOLICITA?</span>
+      <input id="urg-quien" type="text" placeholder="Tu nombre...">
+    </div>
+    <div class="urg-mfield">
+      <span>CANTIDAD NECESARIA</span>
+      <input id="urg-cant" type="number" min="1" placeholder="0" style="width:140px;">
+    </div>
+    <div class="urg-mbtns">
+      <button class="urg-mcancel" onclick="cerrarModalUrg()">Cancelar</button>
+      <button class="urg-mconfirm" onclick="confirmarUrg()">⚡ CONFIRMAR URGENTE</button>
+    </div>
+  </div>
 </div>
 
 <div class="page-header">
@@ -476,16 +513,15 @@ document.addEventListener('contextmenu', e => {{
   if (!row) return;
   e.preventDefault();
   ctxCod = row.dataset.cod;
-  const isUrg = shared.urgente.includes(ctxCod);
-  const isDes = shared.desuso.includes(ctxCod);
-  document.getElementById('ctx-urg-lbl').textContent = isUrg ? 'Quitar urgente' : 'Marcar como URGENTE';
-  document.getElementById('ctx-des-lbl').textContent = isDes ? 'Quitar de desuso' : 'Enviar a desuso';
+  document.getElementById('ctx-urg-lbl').textContent = isUrgente(ctxCod) ? 'Quitar urgente' : 'Marcar como URGENTE';
+  document.getElementById('ctx-des-lbl').textContent = (shared.desuso||[]).includes(ctxCod) ? 'Quitar de desuso' : 'Enviar a desuso';
   ctxMenu.style.display = 'block';
   ctxMenu.style.left = Math.min(e.pageX, window.innerWidth-210)+'px';
   ctxMenu.style.top  = Math.min(e.pageY, window.innerHeight-80)+'px';
 }});
 document.addEventListener('click', () => ctxMenu.style.display = 'none');
-document.addEventListener('keydown', e => {{ if(e.key==='Escape') ctxMenu.style.display='none'; }});
+document.addEventListener('keydown', e => {{ if(e.key==='Escape') {{ ctxMenu.style.display='none'; cerrarModalUrg(); }} }});
+document.getElementById('urg-modal').addEventListener('click', e => {{ if(e.target===e.currentTarget) cerrarModalUrg(); }});
 
 function actualizarBadgesUrgente() {{
   ['ins','cart'].forEach(id => {{
@@ -493,29 +529,62 @@ function actualizarBadgesUrgente() {{
     if (!btn) return;
     const existing = btn.querySelector('.tab-badge-urg');
     if (existing) existing.remove();
-    const cnt = (shared.urgente||[]).filter(cod => DATASETS[id].some(r=>r.Codigo===cod)).length;
+    const cnt = (shared.urgente||[]).filter(u => {{
+      const cod = typeof u==='string'?u:u.cod;
+      return DATASETS[id].some(r=>r.Codigo===cod);
+    }}).length;
     if (cnt > 0) btn.insertAdjacentHTML('beforeend',`<span class="tab-badge tab-badge-urg">${{cnt}}</span>`);
   }});
 }}
 
+function isUrgente(cod) {{
+  return (shared.urgente||[]).some(u=>(typeof u==='string'?u:u.cod)===cod);
+}}
+function getUrgenteInfo(cod) {{
+  return (shared.urgente||[]).find(u=>(typeof u==='string'?u:u.cod)===cod);
+}}
+
+function abrirModalUrg() {{
+  const art = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===ctxCod);
+  document.getElementById('urg-modal-art').textContent = art ? art.Descripcion : ctxCod;
+  document.getElementById('urg-quien').value='';
+  document.getElementById('urg-cant').value='';
+  document.getElementById('urg-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('urg-quien').focus(), 60);
+}}
+function cerrarModalUrg() {{
+  document.getElementById('urg-modal').classList.remove('open');
+}}
+function confirmarUrg() {{
+  const quien = document.getElementById('urg-quien').value.trim();
+  const cant  = parseInt(document.getElementById('urg-cant').value)||0;
+  if (!quien) {{ document.getElementById('urg-quien').focus(); return; }}
+  if (cant<=0) {{ document.getElementById('urg-cant').focus(); return; }}
+  (shared.urgente=shared.urgente||[]).push({{cod:ctxCod, quien, cantidad:cant, fecha:new Date().toLocaleDateString('es-AR')}});
+  shared.desuso = (shared.desuso||[]).filter(c=>c!==ctxCod);
+  saveShared({{urgente:shared.urgente, desuso:shared.desuso}});
+  cerrarModalUrg();
+  S.ins.filtrar(); S.cart.filtrar(); renderDesusoTables(); actualizarBadgesUrgente();
+}}
+
 function ctxToggleUrgente() {{
   if (!ctxCod) return;
-  if (shared.urgente.includes(ctxCod))
-    shared.urgente = shared.urgente.filter(c=>c!==ctxCod);
-  else {{
-    shared.urgente.push(ctxCod);
-    shared.desuso = shared.desuso.filter(c=>c!==ctxCod);
+  if (isUrgente(ctxCod)) {{
+    shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==ctxCod);
+    saveShared({{urgente:shared.urgente}});
+    S.ins.filtrar(); S.cart.filtrar(); renderDesusoTables(); actualizarBadgesUrgente();
+  }} else {{
+    abrirModalUrg();
   }}
-  saveShared({{ urgente: shared.urgente, desuso: shared.desuso }});
-  S.ins.filtrar(); S.cart.filtrar(); renderDesusoTables(); actualizarBadgesUrgente();
 }}
 function ctxToggleDesuso() {{
   if (!ctxCod) return;
-  if (shared.desuso.includes(ctxCod))
+  if ((shared.desuso||[]).includes(ctxCod))
     shared.desuso = shared.desuso.filter(c=>c!==ctxCod);
   else {{
+    shared.desuso = (shared.desuso||[]);
     shared.desuso.push(ctxCod);
-    shared.urgente = shared.urgente.filter(c=>c!==ctxCod);
+    shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==ctxCod);
   }}
   saveShared({{ desuso: shared.desuso, urgente: shared.urgente }});
   S.ins.filtrar(); S.cart.filtrar(); renderDesusoTables(); actualizarBadgesUrgente();
@@ -686,30 +755,41 @@ function makeSection(id) {{
 
   function render() {{
     const provFilter=document.getElementById(id+'-prov').value;
-    const total=filt.length, start=(pg-1)*PG, slice=filt.slice(start,start+PG);
+    // Urgentes siempre primero
+    const display=[...filt].sort((a,b)=>((isUrgente(b.Codigo)?1:0)-(isUrgente(a.Codigo)?1:0)));
+    const total=display.length, start=(pg-1)*PG, slice=display.slice(start,start+PG);
     const pages=Math.max(1,Math.ceil(total/PG));
     document.getElementById(id+'-cnt').textContent=total+' artículo'+(total!==1?'s':'')+(total!==data.length?' (filtrado)':'');
 
-    let html='', curProv=null;
+    let html='', curProv=null, inUrgSec=false;
     const agrupar=!provFilter;
     slice.forEach(r=>{{
-      if(agrupar && r.Proveedor!==curProv){{
+      const isUrg = isUrgente(r.Codigo);
+      const urgInfo = isUrg ? getUrgenteInfo(r.Codigo) : null;
+      if (isUrg && !inUrgSec) {{
+        inUrgSec=true; curProv=null;
+        html+=`<tr class="group-row group-urg"><td colspan="9">⚡ URGENTES</td></tr>`;
+      }}
+      if (!isUrg && inUrgSec) {{ inUrgSec=false; curProv=null; }}
+      if(!isUrg && agrupar && r.Proveedor!==curProv){{
         curProv=r.Proveedor;
-        const tc=filt.filter(x=>x.Proveedor===curProv).reduce((s,x)=>s+x.Consumido,0);
+        const tc=filt.filter(x=>x.Proveedor===curProv&&!isUrgente(x.Codigo)).reduce((s,x)=>s+x.Consumido,0);
         html+=`<tr class="group-row"><td colspan="4">▼ ${{curProv}}</td><td class="num">${{fmt(tc)}}</td><td colspan="4"></td></tr>`;
       }}
-      const isUrg = shared.urgente.includes(r.Codigo);
-      const isDone = shared.pedido_realizado.includes(r.Codigo);
+      const isDone = (shared.pedido_realizado||[]).includes(r.Codigo);
       const sinStock = r.StockActual<=0 && r.Consumido>0;
       const sc = sinStock?'warn-stock':(r.StockActual>0?'ok-stock':'');
-      const stmin = shared.stock_minimo[r.Codigo];
+      const stmin = (shared.stock_minimo||{{}})[r.Codigo];
       let stminCls = '';
       if (stmin!==undefined && stmin>0) {{
         if (r.StockActual <= stmin) stminCls='stmin-bajo';
         else if (r.StockActual <= stmin*2) stminCls='stmin-alerta';
       }}
       const rowCls = isUrg?'urg-row':(isDone?'pedido-done':'');
-      const urgBadge = isUrg?'<span class="badge-urg">URGENTE</span>':'';
+      const urgLabel = urgInfo && typeof urgInfo==='object'
+        ? `${{urgInfo.quien}} · ×${{urgInfo.cantidad}}`
+        : 'URGENTE';
+      const urgBadge = isUrg?`<span class="badge-urg">⚡ ${{urgLabel}}</span>`:'';
       html+=`<tr data-cod="${{r.Codigo}}" class="${{rowCls}}">
         <td style="font-size:11px;color:#aaa">${{r.Codigo}}</td>
         <td>${{r.Descripcion}}${{urgBadge}}</td>
