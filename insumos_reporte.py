@@ -270,6 +270,9 @@ tbody tr.pedido-done td{{opacity:.5;}}
 .tipo-llego{{background:#1a3a1a;color:#4ade80;font-family:"Arial Black",Arial,sans-serif;}}
 .hist-del{{background:none;border:1px solid #2a2a2a;color:#555;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px;}}
 .hist-del:hover{{border-color:var(--err);color:var(--err);}}
+/* Modal pedido */
+#pedido-modal{{display:none;position:fixed;inset:0;z-index:10000;background:#0009;align-items:center;justify-content:center;}}
+#pedido-modal.open{{display:flex;}}
 /* Modal llegó */
 #llego-modal{{display:none;position:fixed;inset:0;z-index:10000;background:#0009;align-items:center;justify-content:center;}}
 #llego-modal.open{{display:flex;}}
@@ -356,7 +359,7 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
   <div class="cnt" id="ins-cnt"></div>
   <div class="pedido-sec" id="ins-pedido">
     <div class="pedido-sec-title">✅ YA PEDIDO</div>
-    <table><thead><tr><th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK DEP.</th><th>CANT. PEDIDA</th><th>QUIÉN PIDIÓ</th><th></th></tr></thead>
+    <table><thead><tr><th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK DEP.</th><th>CANT. PEDIDA</th><th>FECHA ENTREGA</th><th>QUIÉN PIDIÓ</th><th></th></tr></thead>
     <tbody id="ins-pedido-tbody"></tbody></table>
   </div>
   <div class="desuso-section" id="ins-desuso">
@@ -419,7 +422,7 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
   <div class="cnt" id="cart-cnt"></div>
   <div class="pedido-sec" id="cart-pedido">
     <div class="pedido-sec-title">✅ YA PEDIDO</div>
-    <table><thead><tr><th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK DEP.</th><th>CANT. PEDIDA</th><th>QUIÉN PIDIÓ</th><th></th></tr></thead>
+    <table><thead><tr><th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>STOCK DEP.</th><th>CANT. PEDIDA</th><th>FECHA ENTREGA</th><th>QUIÉN PIDIÓ</th><th></th></tr></thead>
     <tbody id="cart-pedido-tbody"></tbody></table>
   </div>
   <div class="desuso-section" id="cart-desuso">
@@ -481,6 +484,26 @@ tbody tr.group-urg td{{color:var(--err)!important;}}
   </div>
 </div>
 
+<!-- Modal pedido -->
+<div id="pedido-modal">
+  <div class="urg-mbox">
+    <div class="urg-mtitle" style="color:#60a5fa;">📋 REGISTRAR PEDIDO</div>
+    <div class="urg-mart" id="pedido-modal-art"></div>
+    <div class="urg-mfield">
+      <span>CANTIDAD PEDIDA</span>
+      <input id="pedido-cant" type="number" min="1" placeholder="0" style="width:140px;">
+    </div>
+    <div class="urg-mfield">
+      <span>FECHA DE ENTREGA APROX.</span>
+      <input id="pedido-fecha" type="date" style="width:180px;">
+    </div>
+    <div class="urg-mbtns">
+      <button class="urg-mcancel" onclick="cerrarModalPedido()">Cancelar</button>
+      <button class="urg-mconfirm" style="background:#0a1e3a;border-color:#60a5fa;color:#60a5fa;" onclick="confirmarPedido()">📋 CONFIRMAR PEDIDO</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal llegó -->
 <div id="llego-modal">
   <div class="urg-mbox">
@@ -520,7 +543,7 @@ const SERVER = 'http://localhost:5001';
 
 // ── Datos compartidos (servidor + fallback localStorage) ─────
 const LS_KEY = 'insumos_shared_v2';
-let shared = {{ urgente:[], desuso:[], stock_minimo:{{}}, pedido_realizado:[], notas:{{}}, solicitudes_cartones:[], historial:[] }};
+let shared = {{ urgente:[], desuso:[], stock_minimo:{{}}, pedido_realizado:[], pedido_info:{{}}, notas:{{}}, solicitudes_cartones:[], historial:[] }};
 
 async function loadShared() {{
   try {{
@@ -533,6 +556,7 @@ async function loadShared() {{
     shared.notas            = shared.notas            || {{}};
     shared.solicitudes_cartones = shared.solicitudes_cartones || [];
     shared.historial            = shared.historial            || [];
+    shared.pedido_info          = shared.pedido_info          || {{}};
   }} catch(e) {{
     try {{ Object.assign(shared, JSON.parse(localStorage.getItem(LS_KEY)||'{{}}')); }} catch(e2) {{}}
   }}
@@ -738,28 +762,59 @@ function renderKpis(id) {{
   `;
 }}
 
-// ── Pedido realizado checkbox ─────────────────────────────────
-function togglePedido(cod) {{
-  const yaTenia = (shared.pedido_realizado||[]).includes(cod);
-  if (yaTenia) {{
-    shared.pedido_realizado = shared.pedido_realizado.filter(c=>c!==cod);
+// ── Pedido realizado ─────────────────────────────────────────
+function onChangePedido(e, cod) {{
+  if (e.target.checked) {{
+    e.target.checked = false;   // revertir — el modal confirma el check
+    abrirModalPedido(cod);
   }} else {{
-    shared.pedido_realizado.push(cod);
-    const art = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===cod);
-    const urgInfo = getUrgenteInfo(cod);
-    addHistorial({{
-      tipo:'pedido',
-      cod,
-      descripcion: art ? art.Descripcion : cod,
-      quien: urgInfo && typeof urgInfo==='object' ? urgInfo.quien : '',
-      cantidad: urgInfo && typeof urgInfo==='object' ? urgInfo.cantidad : '',
-      nota: ''
-    }});
+    desmarcarPedido(cod);
   }}
-  saveShared({{ pedido_realizado: shared.pedido_realizado, historial: shared.historial }});
+}}
+
+let pedidoCod = null;
+function abrirModalPedido(cod) {{
+  pedidoCod = cod;
+  const art = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===cod);
+  document.getElementById('pedido-modal-art').textContent = art ? art.Descripcion : cod;
+  const urgInfo = getUrgenteInfo(cod);
+  document.getElementById('pedido-cant').value = urgInfo&&typeof urgInfo==='object' ? urgInfo.cantidad : '';
+  document.getElementById('pedido-fecha').value = '';
+  document.getElementById('pedido-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pedido-cant').focus(), 60);
+}}
+function cerrarModalPedido() {{
+  document.getElementById('pedido-modal').classList.remove('open');
+}}
+function confirmarPedido() {{
+  const cant  = parseInt(document.getElementById('pedido-cant').value)||0;
+  const fecha = document.getElementById('pedido-fecha').value;
+  if (cant<=0) {{ document.getElementById('pedido-cant').focus(); return; }}
+  if (!fecha)  {{ document.getElementById('pedido-fecha').focus(); return; }}
+  const art = [...DATASETS['ins'],...DATASETS['cart']].find(r=>r.Codigo===pedidoCod);
+  const urgInfo = getUrgenteInfo(pedidoCod);
+  (shared.pedido_realizado=shared.pedido_realizado||[]).push(pedidoCod);
+  (shared.pedido_info=shared.pedido_info||{{}})[pedidoCod] = {{cantidad:cant, fecha_entrega:fecha}};
+  addHistorial({{
+    tipo:'pedido', cod:pedidoCod,
+    descripcion: art ? art.Descripcion : pedidoCod,
+    quien: urgInfo&&typeof urgInfo==='object' ? urgInfo.quien : '',
+    cantidad: cant,
+    nota: 'Entrega: '+fecha
+  }});
+  saveShared({{pedido_realizado:shared.pedido_realizado, pedido_info:shared.pedido_info, historial:shared.historial}});
+  cerrarModalPedido();
   S.ins.filtrar(); S.cart.filtrar();
   renderPedidoSections();
 }}
+function desmarcarPedido(cod) {{
+  shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c=>c!==cod);
+  if (shared.pedido_info) delete shared.pedido_info[cod];
+  saveShared({{pedido_realizado:shared.pedido_realizado, pedido_info:shared.pedido_info}});
+  S.ins.filtrar(); S.cart.filtrar();
+  renderPedidoSections();
+}}
+document.getElementById('pedido-modal').addEventListener('click', e=>{{ if(e.target===e.currentTarget) cerrarModalPedido(); }});
 
 // ── Solicitudes cartones ──────────────────────────────────────
 function poblarSelectCartones() {{
@@ -880,18 +935,21 @@ function renderPedidoSections() {{
     if (rows.length===0) {{ sec.classList.remove('open'); return; }}
     sec.classList.add('open');
     document.getElementById(id+'-pedido-tbody').innerHTML = rows.map(r => {{
+      const info  = (shared.pedido_info||{{}})[r.Codigo] || {{}};
       const urgInfo = getUrgenteInfo(r.Codigo);
-      const cant  = urgInfo && typeof urgInfo==='object' ? urgInfo.cantidad : '—';
-      const quien = urgInfo && typeof urgInfo==='object' ? urgInfo.quien    : '—';
+      const cant   = info.cantidad || (urgInfo&&typeof urgInfo==='object'?urgInfo.cantidad:'—');
+      const fecha  = info.fecha_entrega ? info.fecha_entrega.split('-').reverse().join('/') : '—';
+      const quien  = urgInfo&&typeof urgInfo==='object' ? urgInfo.quien : '—';
       return `<tr>
         <td style="color:#555;font-size:11px">${{r.Codigo}}</td>
         <td>${{r.Descripcion}}</td>
         <td class="num" style="color:#aaa">${{r.StockActual}}</td>
         <td class="num" style="color:#22c55e;font-weight:700">${{cant}}</td>
+        <td style="color:#60a5fa;font-weight:700">${{fecha}}</td>
         <td style="color:#aaa">${{quien}}</td>
         <td>
           <button class="btn-llego" onclick="abrirModalLlego('${{r.Codigo}}')">✓ LLEGÓ</button>
-          <button class="btn-despedido" onclick="togglePedido('${{r.Codigo}}')">Desmarcar</button>
+          <button class="btn-despedido" onclick="desmarcarPedido('${{r.Codigo}}')">Desmarcar</button>
         </td>
       </tr>`;
     }}).join('');
@@ -1028,7 +1086,7 @@ function makeSection(id) {{
         <td class="num"><span class="stmin-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="stmin"></span></td>
         <td><span class="nota-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="logistica"></span></td>
         <td><span class="nota-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="compras"></span></td>
-        <td style="text-align:center"><input type="checkbox" ${{isDone?'checked':''}} onchange="togglePedido('${{r.Codigo}}')" style="width:16px;height:16px;accent-color:var(--ok);cursor:pointer;"></td>
+        <td style="text-align:center"><input type="checkbox" ${{isDone?'checked':''}} onchange="onChangePedido(event,'${{r.Codigo}}')" style="width:16px;height:16px;accent-color:var(--ok);cursor:pointer;"></td>
       </tr>`;
     }});
     document.getElementById(id+'-tbody').innerHTML=html;
