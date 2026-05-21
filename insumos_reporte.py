@@ -22,6 +22,9 @@ UNIDADES_ESPECIALES = {
     'ZZ0000149': 'Caja x80',
 }
 UNIDAD_DEFAULT = 'Unidad'
+
+# Códigos que van a la sección Cartones aunque su descripción no empiece con "CARTON"
+CODIGOS_CARTON_EXTRA = {'ZZ0000315'}
 DB_MARKET = 'MARKET'
 
 # ---------------------------------------------------------------------------
@@ -137,13 +140,13 @@ def _cpd(r):
 df['ConsumoPromDiario'] = df.apply(_cpd, axis=1)
 
 in_comb = set(df_stock['Codigo'].tolist())
-df = df[(df['Consumido'] > 0) | (df['StockActual'] > 0) | df['Codigo'].isin(in_comb)].copy()
+df = df[(df['Consumido'] > 0) | (df['StockActual'] > 0) | df['Codigo'].isin(in_comb) | df['Codigo'].isin(CODIGOS_CARTON_EXTRA)].copy()
 df = df.sort_values(['Proveedor', 'Codigo']).reset_index(drop=True)
 df = df[['Proveedor', 'Codigo', 'Descripcion', 'Unidad', 'Consumido', 'StockActual',
          'ConsumidoDesdeIngreso', 'DiasDesdeIngreso', 'UltimoIngreso', 'ConsumoPromDiario']]
 
 # Separar cartones del resto
-es_carton = df['Descripcion'].str.upper().str.startswith('CARTON')
+es_carton = df['Descripcion'].str.upper().str.startswith('CARTON') | df['Codigo'].isin(CODIGOS_CARTON_EXTRA)
 df_carton  = df[es_carton].copy()
 df_insumos = df[~es_carton].copy()
 
