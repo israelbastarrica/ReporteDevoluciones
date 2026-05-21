@@ -1195,14 +1195,14 @@ function renderHistorial() {{
   const grupoKeys = {{}};
   const virtEntries = [];
   hist.forEach(e => {{
-    if (e.tipo === 'pedido') {{
+    if (e.tipo === 'pedido' || (e.tipo === 'llego' && e.grupoId)) {{
       const gk = e.grupoId || 'leg_' + (e.nota||'').slice(0,60);
       if (!grupoKeys[gk]) {{
         const rk = 'hg_' + (grupoIdx++);
         grupoKeys[gk] = rk;
         const prov = e.proveedor || ((e.nota||'').match(/·\s*(.+)$/) || [])[1]?.trim() || '';
         const fechaEnt = e.fechaEntrega || ((e.nota||'').match(/Entrega:\s*([\d-]+)/) || [])[1] || '';
-        _histGruposRender[rk] = {{ rk, fecha:e.fecha, prov, fechaEnt, items:[], ids:[] }};
+        _histGruposRender[rk] = {{ rk, tipo:e.tipo, fecha:e.fecha, prov, fechaEnt, items:[], ids:[] }};
         virtEntries.push({{ _tipo:'grupo', rk }});
       }}
       const rk = grupoKeys[gk];
@@ -1224,39 +1224,64 @@ function renderHistorial() {{
     if (v._tipo === 'grupo') {{
       const g = _histGruposRender[v.rk];
       const total = g.items.reduce((s,i)=>s+(i.cantidad||0), 0);
-      const fechaEntFmt = g.fechaEnt ? g.fechaEnt.split('-').reverse().join('/') : '?';
       const subRows = g.items.map(i=>`<tr>
         <td style="color:#444;padding:3px 8px;">${{i.codigo||''}}</td>
         <td style="padding:3px 8px;">${{i.descripcion||''}}</td>
         <td style="color:#aaa;text-align:right;padding:3px 8px;">${{i.cantidad||0}}</td>
       </tr>`).join('');
-      html += `
-        <tr style="cursor:pointer" onclick="toggleDetHistGrupo('${{v.rk}}')">
-          <td style="color:#555;font-size:11px;white-space:nowrap">${{g.fecha}}</td>
-          <td><span class="tipo-badge tipo-pedido">PEDIDO</span></td>
-          <td><strong>${{g.prov}}</strong><span style="color:#555;font-size:11px;"> · ${{g.items.length}} art. · entrega ${{fechaEntFmt}}</span></td>
-          <td style="color:#aaa">—</td>
-          <td class="num" style="color:#aaa">${{fmt(total)}}</td>
-          <td style="color:#555;font-size:10px;">ver ▾</td>
-          <td style="white-space:nowrap;display:flex;gap:4px;padding:6px 4px;flex-wrap:wrap;">
-            <button class="hist-del" style="border-color:#2a6b2a;color:#4ade80;" onclick="event.stopPropagation();redownloadTxtGrupo('${{v.rk}}')">↓ TXT</button>
-            <button class="hist-del" style="border-color:#1a4a7a;color:#60a5fa;" onclick="event.stopPropagation();editarPedidoHist('${{v.rk}}')">✎ Editar</button>
-            <button class="hist-del" onclick="event.stopPropagation();eliminarGrupoHist('${{v.rk}}')">🗑 Hist.</button>
-            <button class="hist-del" style="border-color:#6b2a2a;color:#f87171;" onclick="event.stopPropagation();cancelarPedidoHist('${{v.rk}}')">✕ Cancelar pedido</button>
-          </td>
-        </tr>
-        <tr id="detg-${{v.rk}}" style="display:none;background:#0d0d0d">
-          <td colspan="7" style="padding:6px 24px 10px">
-            <table style="width:100%;font-size:11px;border-collapse:collapse">
-              <thead><tr>
-                <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CÓDIGO</th>
-                <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">DESCRIPCIÓN</th>
-                <th style="color:#444;text-align:right;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CANT.</th>
-              </tr></thead>
-              <tbody>${{subRows}}</tbody>
-            </table>
-          </td>
-        </tr>`;
+      if (g.tipo === 'llego') {{
+        html += `
+          <tr style="cursor:pointer" onclick="toggleDetHistGrupo('${{v.rk}}')">
+            <td style="color:#555;font-size:11px;white-space:nowrap">${{g.fecha}}</td>
+            <td><span class="tipo-badge tipo-llego">✓ LLEGÓ</span></td>
+            <td><strong>${{g.prov}}</strong><span style="color:#555;font-size:11px;"> · ${{g.items.length}} art.</span></td>
+            <td style="color:#aaa">—</td>
+            <td class="num" style="color:#aaa">${{fmt(total)}}</td>
+            <td style="color:#555;font-size:10px;">ver ▾</td>
+            <td><button class="hist-del" onclick="event.stopPropagation();eliminarGrupoHist('${{v.rk}}')">Eliminar</button></td>
+          </tr>
+          <tr id="detg-${{v.rk}}" style="display:none;background:#0d0d0d">
+            <td colspan="7" style="padding:6px 24px 10px">
+              <table style="width:100%;font-size:11px;border-collapse:collapse">
+                <thead><tr>
+                  <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CÓDIGO</th>
+                  <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">DESCRIPCIÓN</th>
+                  <th style="color:#444;text-align:right;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CANT. RECIBIDA</th>
+                </tr></thead>
+                <tbody>${{subRows}}</tbody>
+              </table>
+            </td>
+          </tr>`;
+      }} else {{
+        const fechaEntFmt = g.fechaEnt ? g.fechaEnt.split('-').reverse().join('/') : '?';
+        html += `
+          <tr style="cursor:pointer" onclick="toggleDetHistGrupo('${{v.rk}}')">
+            <td style="color:#555;font-size:11px;white-space:nowrap">${{g.fecha}}</td>
+            <td><span class="tipo-badge tipo-pedido">PEDIDO</span></td>
+            <td><strong>${{g.prov}}</strong><span style="color:#555;font-size:11px;"> · ${{g.items.length}} art. · entrega ${{fechaEntFmt}}</span></td>
+            <td style="color:#aaa">—</td>
+            <td class="num" style="color:#aaa">${{fmt(total)}}</td>
+            <td style="color:#555;font-size:10px;">ver ▾</td>
+            <td style="white-space:nowrap;display:flex;gap:4px;padding:6px 4px;flex-wrap:wrap;">
+              <button class="hist-del" style="border-color:#2a6b2a;color:#4ade80;" onclick="event.stopPropagation();redownloadTxtGrupo('${{v.rk}}')">↓ TXT</button>
+              <button class="hist-del" style="border-color:#1a4a7a;color:#60a5fa;" onclick="event.stopPropagation();editarPedidoHist('${{v.rk}}')">✎ Editar</button>
+              <button class="hist-del" onclick="event.stopPropagation();eliminarGrupoHist('${{v.rk}}')">🗑 Hist.</button>
+              <button class="hist-del" style="border-color:#6b2a2a;color:#f87171;" onclick="event.stopPropagation();cancelarPedidoHist('${{v.rk}}')">✕ Cancelar pedido</button>
+            </td>
+          </tr>
+          <tr id="detg-${{v.rk}}" style="display:none;background:#0d0d0d">
+            <td colspan="7" style="padding:6px 24px 10px">
+              <table style="width:100%;font-size:11px;border-collapse:collapse">
+                <thead><tr>
+                  <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CÓDIGO</th>
+                  <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">DESCRIPCIÓN</th>
+                  <th style="color:#444;text-align:right;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CANT.</th>
+                </tr></thead>
+                <tbody>${{subRows}}</tbody>
+              </table>
+            </td>
+          </tr>`;
+      }}
     }} else {{
       const e = v.e;
       html += `
@@ -1739,12 +1764,13 @@ function confirmarLlegoGrp() {{
   const {{ prov, secId, arts }} = llegoGrpData;
   const nota = document.getElementById('lgm-nota').value.trim();
   let count = 0;
+  const grupoId = 'lg_' + Date.now().toString() + Math.random().toString(36).slice(2,6);
   arts.forEach(r => {{
     const chk = document.getElementById('lgm-chk-'+r.Codigo);
     if (!chk?.checked) return;
     const cant = parseInt(document.getElementById('lgm-q-'+r.Codigo)?.value)||0;
     if (cant <= 0) return;
-    addHistorial({{ tipo:'llego', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota }});
+    addHistorial({{ tipo:'llego', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota, grupoId, proveedor:prov }});
     shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c=>c!==r.Codigo);
     shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==r.Codigo);
     if (shared.pedido_info) delete shared.pedido_info[r.Codigo];
