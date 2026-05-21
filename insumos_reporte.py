@@ -633,6 +633,34 @@ tbody tr.pedido-vencido > td:first-child{{border-left:3px solid var(--err);}}
   </div>
 </div>
 
+<!-- Modal llegó — pedido completo -->
+<div id="llego-grp-modal">
+  <div class="ppm-box" style="min-width:560px;max-width:680px;">
+    <div class="ppm-title" style="color:#22c55e;">✓ LLEGÓ — <span id="lgm-prov"></span></div>
+    <div class="ppm-scroll">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr>
+          <th style="width:32px;text-align:center;padding:6px 8px;background:#111;border-bottom:1px solid #222;">
+            <input type="checkbox" id="lgm-chk-all" checked onchange="lgmCheckAll(this.checked)" style="width:14px;height:14px;accent-color:#22c55e;cursor:pointer;">
+          </th>
+          <th style="text-align:left;padding:6px 10px;background:#111;border-bottom:1px solid #222;color:#555;font-size:10px;letter-spacing:.5px;">ARTÍCULO</th>
+          <th style="text-align:right;padding:6px 10px;background:#111;border-bottom:1px solid #222;color:#555;font-size:10px;letter-spacing:.5px;min-width:80px;">PEDIDO</th>
+          <th style="text-align:right;padding:6px 10px;background:#111;border-bottom:1px solid #222;color:#555;font-size:10px;letter-spacing:.5px;min-width:100px;">RECIBIDO</th>
+        </tr></thead>
+        <tbody id="lgm-tbody"></tbody>
+      </table>
+    </div>
+    <div class="ppm-field">
+      <span>NOTA (OPCIONAL)</span>
+      <input type="text" id="lgm-nota" placeholder="Observaciones generales...">
+    </div>
+    <div class="ppm-btns">
+      <button class="urg-mcancel" onclick="cerrarModalLlegoGrp()">Cancelar</button>
+      <button onclick="confirmarLlegoGrp()" class="urg-mconfirm" style="background:#0a2e0a;border-color:#22c55e;color:#22c55e;">✓ CONFIRMAR LLEGÓ</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal pedido por proveedor -->
 <div id="pedido-prov-modal">
   <div class="ppm-box">
@@ -1594,32 +1622,19 @@ function renderProveedores() {{
     const secLabel = g.secId==='ins'?'INSUMOS':'CARTONES';
     const secCls   = g.secId==='ins'?'ins':'cart';
     const provAttr = g.prov.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    const cardId = 'pc_' + g.secId + '_' + g.prov.replace(/[^a-zA-Z0-9]/g,'_').slice(0,20);
     let orderedHtml = '';
     if (g.ordered.length) {{
       const fechas = g.ordered.map(r=>(shared.pedido_info||{{}})[r.Codigo]?.fecha_entrega).filter(Boolean).sort();
       const proxima = fechas[0] ? fechas[0].split('-').reverse().join('/') : '?';
-      const anyVencido = fechas.some(f => f < hoyISO);
-      const itemsHtml = g.ordered.map(r => {{
-        const info = (shared.pedido_info||{{}})[r.Codigo] || {{}};
-        const cant = info.cantidad !== undefined ? info.cantidad : '—';
-        const fechaEnt = info.fecha_entrega ? info.fecha_entrega.split('-').reverse().join('/') : '—';
-        const vencido = info.fecha_entrega && info.fecha_entrega < hoyISO;
-        return `<div style="display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid #111;font-size:11px;">
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${{r.Descripcion}}</span>
-          <span style="color:#22c55e;font-weight:700;flex-shrink:0;">×${{cant}}</span>
-          <span style="color:${{vencido?'var(--err)':'#60a5fa'}};flex-shrink:0;font-size:10px;">${{fechaEnt}}</span>
-          <button class="btn-llego" style="padding:1px 6px;font-size:10px;flex-shrink:0;" onclick="abrirModalLlego('${{r.Codigo}}')">✓ llegó</button>
-          <button class="btn-despedido" style="padding:1px 5px;flex-shrink:0;" onclick="desmarcarPedido('${{r.Codigo}}')">✗</button>
-        </div>`;
-      }}).join('');
+      const anyVencido = fechas.length && fechas[0] < hoyISO;
       orderedHtml = `
-        <button onclick="togglePedidoCard('${{cardId}}')" style="width:100%;text-align:left;background:#071a07;border:1px solid #1a3a1a;border-radius:4px;padding:5px 10px;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-          <span style="color:#22c55e;font-size:11px;font-weight:700;">📦 Pedido N°1 · ${{g.ordered.length}} art. · ent. <span style="color:${{anyVencido?'var(--err)':'#60a5fa'}};">${{proxima}}</span></span>
-          <span id="${{cardId}}-arr" style="color:#22c55e;font-size:10px;">▼</span>
-        </button>
-        <div id="${{cardId}}-det" style="display:none;background:#071207;border:1px solid #1a3a1a;border-top:none;border-radius:0 0 4px 4px;padding:6px 10px 4px;">
-          ${{itemsHtml}}
+        <div style="margin-top:8px;display:flex;gap:6px;align-items:center;background:#071a07;border:1px solid #1a3a1a;border-radius:4px;padding:6px 10px;">
+          <div style="flex:1;">
+            <span style="color:#22c55e;font-size:11px;font-weight:700;">📦 Pedido N°1</span>
+            <span style="color:#555;font-size:10px;"> · ${{g.ordered.length}} art. · ent. </span>
+            <span style="color:${{anyVencido?'var(--err)':'#60a5fa'}};font-size:10px;font-weight:700;">${{proxima}}</span>
+          </div>
+          <button class="btn-llego" style="font-size:11px;padding:4px 12px;flex-shrink:0;" onclick="abrirModalLlegoGrp('${{provAttr}}','${{g.secId}}')">✓ Aceptar</button>
         </div>`;
     }}
     html += `<div class="prov-card">
@@ -1654,14 +1669,63 @@ function renderProveedores() {{
   const cntEl = document.getElementById('prov-cnt');
   if(cntEl) cntEl.textContent = cards.length + ' proveedor'+(cards.length!==1?'es':'');
 }}
-function togglePedidoCard(cardId) {{
-  const det = document.getElementById(cardId+'-det');
-  const arr = document.getElementById(cardId+'-arr');
-  if (!det) return;
-  const open = det.style.display === 'none';
-  det.style.display = open ? '' : 'none';
-  if (arr) arr.textContent = open ? '▲' : '▼';
+let llegoGrpData = null;
+function abrirModalLlegoGrp(prov, secId) {{
+  const arts = (DATASETS[secId]||[]).filter(r =>
+    r.Proveedor === prov && (shared.pedido_realizado||[]).includes(r.Codigo)
+  );
+  if (!arts.length) return;
+  llegoGrpData = {{ prov, secId, arts }};
+  document.getElementById('lgm-prov').textContent = prov;
+  document.getElementById('lgm-nota').value = '';
+  document.getElementById('lgm-chk-all').checked = true;
+  let html = '';
+  arts.forEach(r => {{
+    const info = (shared.pedido_info||{{}})[r.Codigo] || {{}};
+    const cantPed = info.cantidad !== undefined ? info.cantidad : 0;
+    html += `<tr>
+      <td style="text-align:center;padding:6px 8px;border-bottom:1px solid #1a1a1a;">
+        <input type="checkbox" checked class="lgm-chk" id="lgm-chk-${{r.Codigo}}" style="width:14px;height:14px;accent-color:#22c55e;cursor:pointer;">
+      </td>
+      <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;">${{r.Descripcion}} <span style="color:#444;font-size:10px;">${{r.Codigo}}</span></td>
+      <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:right;color:#22c55e;font-weight:700;">${{cantPed}}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:right;">
+        <input type="number" min="0" value="${{cantPed}}" id="lgm-q-${{r.Codigo}}"
+          style="width:70px;text-align:right;background:#1a1a1a;border:1px solid #333;color:var(--text);padding:3px 6px;border-radius:3px;">
+      </td>
+    </tr>`;
+  }});
+  document.getElementById('lgm-tbody').innerHTML = html;
+  document.getElementById('llego-grp-modal').classList.add('open');
 }}
+function lgmCheckAll(checked) {{
+  document.querySelectorAll('.lgm-chk').forEach(c => c.checked = checked);
+}}
+function cerrarModalLlegoGrp() {{
+  document.getElementById('llego-grp-modal').classList.remove('open');
+}}
+function confirmarLlegoGrp() {{
+  const {{ prov, secId, arts }} = llegoGrpData;
+  const nota = document.getElementById('lgm-nota').value.trim();
+  let count = 0;
+  arts.forEach(r => {{
+    const chk = document.getElementById('lgm-chk-'+r.Codigo);
+    if (!chk?.checked) return;
+    const cant = parseInt(document.getElementById('lgm-q-'+r.Codigo)?.value)||0;
+    if (cant <= 0) return;
+    addHistorial({{ tipo:'llego', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota }});
+    shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c=>c!==r.Codigo);
+    shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==r.Codigo);
+    count++;
+  }});
+  if (!count) {{ cerrarModalLlegoGrp(); return; }}
+  saveShared({{ pedido_realizado:shared.pedido_realizado, urgente:shared.urgente, historial:shared.historial }});
+  cerrarModalLlegoGrp();
+  S.ins.filtrar(); S.cart.filtrar();
+  renderPedidoSections(); actualizarBadgesUrgente();
+  renderProveedores();
+}}
+document.getElementById('llego-grp-modal').addEventListener('click', e=>{{ if(e.target===e.currentTarget) cerrarModalLlegoGrp(); }});
 
 // ── Sync manual ───────────────────────────────────────────────
 async function syncManual() {{
