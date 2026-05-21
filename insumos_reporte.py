@@ -104,7 +104,9 @@ df_mstock = pd.read_sql(f"""
         GROUP BY RTRIM(D.MART)
     )
     SELECT UI.Codigo,
-           ISNULL(S.ConsumidoDesdeIngreso, 0) AS ConsumidoDesdeIngreso
+           CONVERT(varchar(10), UI.UltimoIngreso, 120)   AS UltimoIngreso,
+           ISNULL(S.ConsumidoDesdeIngreso, 0)             AS ConsumidoDesdeIngreso,
+           DATEDIFF(day, UI.UltimoIngreso, GETDATE())     AS DiasDesdeIngreso
     FROM ultimos_ingresos UI
     LEFT JOIN salidas S ON UI.Codigo = S.Codigo
 """, conn)
@@ -118,16 +120,26 @@ df = df_stock.merge(df_consumo, on='Codigo', how='outer')
 df = df.merge(df_art, on='Codigo', how='left')
 df = df.merge(df_mstock, on='Codigo', how='left')
 
-df['Descripcion']          = df['Descripcion'].fillna(df['Codigo'])
-df['Proveedor']            = df['Proveedor'].fillna('SIN PROVEEDOR')
-df['StockActual']          = df['StockActual'].fillna(0).astype(int)
-df['Consumido']            = df['Consumido'].fillna(0).astype(int)
+df['Descripcion']           = df['Descripcion'].fillna(df['Codigo'])
+df['Proveedor']             = df['Proveedor'].fillna('SIN PROVEEDOR')
+df['StockActual']           = df['StockActual'].fillna(0).astype(int)
+df['Consumido']             = df['Consumido'].fillna(0).astype(int)
 df['ConsumidoDesdeIngreso'] = df['ConsumidoDesdeIngreso'].fillna(-1).astype(int)
-df['Unidad']               = df['Codigo'].map(UNIDADES_ESPECIALES).fillna(UNIDAD_DEFAULT)
+df['DiasDesdeIngreso']      = df['DiasDesdeIngreso'].fillna(0).astype(int)
+df['UltimoIngreso']         = df['UltimoIngreso'].fillna('').astype(str).str.strip()
+df['Unidad']                = df['Codigo'].map(UNIDADES_ESPECIALES).fillna(UNIDAD_DEFAULT)
+
+# Consumo promedio diario desde el último ingreso (solo cuando hay datos válidos)
+def _cpd(r):
+    if r['ConsumidoDesdeIngreso'] > 0 and r['DiasDesdeIngreso'] > 0:
+        return round(r['ConsumidoDesdeIngreso'] / r['DiasDesdeIngreso'], 2)
+    return 0.0
+df['ConsumoPromDiario'] = df.apply(_cpd, axis=1)
 
 df = df[(df['Consumido'] > 0) | (df['StockActual'] > 0)].copy()
 df = df.sort_values(['Proveedor', 'Codigo']).reset_index(drop=True)
-df = df[['Proveedor', 'Codigo', 'Descripcion', 'Unidad', 'Consumido', 'StockActual', 'ConsumidoDesdeIngreso']]
+df = df[['Proveedor', 'Codigo', 'Descripcion', 'Unidad', 'Consumido', 'StockActual',
+         'ConsumidoDesdeIngreso', 'DiasDesdeIngreso', 'UltimoIngreso', 'ConsumoPromDiario']]
 
 # Separar cartones del resto
 es_carton = df['Descripcion'].str.upper().str.startswith('CARTON')
@@ -353,6 +365,25 @@ tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
 .btn-pedir{{background:#0a1e3a;border:1px solid #1a4a8a;color:#60a5fa;padding:8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;text-align:center;}}
 .btn-pedir:hover{{background:#0d2a4a;border-color:#60a5fa;}}
 .prov-empty{{color:#333;font-style:italic;font-size:13px;padding:48px 24px;}}
+/* Pedido vencido en YA PEDIDO */
+tbody tr.pedido-vencido > td{{color:var(--err)!important;}}
+tbody tr.pedido-vencido > td:first-child{{border-left:3px solid var(--err);}}
+/* Botones toolbar extra */
+.btn-export{{background:#0a1a2e;border:1px solid #1a3a6a;color:#60a5fa;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;}}
+.btn-export:hover{{background:#0d2244;border-color:#60a5fa;}}
+.btn-sync{{background:#1a1a1a;border:1px solid #333;color:#666;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;}}
+.btn-sync:hover{{border-color:#aaa;color:#aaa;}}
+/* Buscador proveedores */
+.prov-search{{background:#1a1a1a;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:4px;font-size:12px;width:260px;}}
+.prov-search:focus{{outline:none;border-color:var(--accent);}}
+.prov-toolbar{{display:flex;gap:10px;padding:14px 24px 0;align-items:center;flex-wrap:wrap;}}
+/* Detalle proveedor modal */
+#detalle-prov-modal{{display:none;position:fixed;inset:0;z-index:10000;background:#0009;align-items:center;justify-content:center;}}
+#detalle-prov-modal.open{{display:flex;}}
+.btn-ver-detalle{{background:none;border:1px solid #333;color:#666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.5px;}}
+.btn-ver-detalle:hover{{border-color:#aaa;color:#aaa;}}
+/* Badge pedido activo en card */
+.prov-card-pedido{{background:#071207;border:1px solid #1a3a1a;border-radius:4px;padding:5px 8px;font-size:10px;color:#22c55e;font-weight:700;}}
 </style>
 </head>
 <body>
@@ -411,6 +442,8 @@ tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
     <select id="ins-prov" onchange="S.ins.filtrar()"><option value="">Todos los proveedores</option></select>
     <input id="ins-bus" type="text" placeholder="Buscar código o descripción..." oninput="S.ins.filtrar()">
     <button id="ins-consumo" onclick="S.ins.toggleConsumo()" style="background:#0a1e0a;border:1px solid #1a4a1a;color:#22c55e;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;">VER CONSUMO</button>
+    <button class="btn-export" onclick="exportarCSV('ins')">↓ EXCEL</button>
+    <button class="btn-sync" onclick="syncManual()">↺ SYNC</button>
     <button class="desuso-toggle" onclick="toggleDesusoPanel('ins')">Ver desuso</button>
   </div>
   <div class="cnt" id="ins-cnt"></div>
@@ -469,6 +502,8 @@ tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
     <select id="cart-prov" onchange="S.cart.filtrar()"><option value="">Todos los proveedores</option></select>
     <input id="cart-bus" type="text" placeholder="Buscar código o descripción..." oninput="S.cart.filtrar()">
     <button id="cart-consumo" onclick="S.cart.toggleConsumo()" style="background:#0a1e0a;border:1px solid #1a4a1a;color:#22c55e;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;">VER CONSUMO</button>
+    <button class="btn-export" onclick="exportarCSV('cart')">↓ EXCEL</button>
+    <button class="btn-sync" onclick="syncManual()">↺ SYNC</button>
     <button class="desuso-toggle" onclick="toggleDesusoPanel('cart')">Ver desuso</button>
   </div>
   <div class="cnt" id="cart-cnt"></div>
@@ -538,6 +573,30 @@ tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
 <!-- ══ PROVEEDORES ══ -->
 <div id="sec-prov" class="section">
   <div id="prov-content"></div>
+</div>
+
+<!-- Modal detalle proveedor -->
+<div id="detalle-prov-modal">
+  <div class="ppm-box" style="min-width:520px;">
+    <div class="ppm-title">DETALLE — <span id="dpm-prov"></span></div>
+    <div class="ppm-sub" id="dpm-sub"></div>
+    <div class="ppm-scroll">
+      <table>
+        <thead><tr>
+          <th style="min-width:90px;">CÓDIGO</th>
+          <th>DESCRIPCIÓN</th>
+          <th style="min-width:80px;text-align:right;">STOCK</th>
+          <th style="min-width:80px;text-align:right;">CONSUMIDO</th>
+          <th style="min-width:80px;text-align:right;">SUGERIDO</th>
+        </tr></thead>
+        <tbody id="dpm-tbody"></tbody>
+      </table>
+    </div>
+    <div class="ppm-btns">
+      <button class="urg-mcancel" onclick="cerrarDetalleProv()">Cerrar</button>
+      <button class="urg-mconfirm" style="background:#0a1e0a;border-color:#22c55e;color:#22c55e;" id="dpm-pedir-btn">📦 PEDIR</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal pedido -->
@@ -967,6 +1026,7 @@ function confirmarPedidoProv() {{
 }}
 
 document.getElementById('pedido-prov-modal').addEventListener('click', e=>{{ if(e.target===e.currentTarget) cerrarModalPedidoProv(); }});
+document.getElementById('detalle-prov-modal').addEventListener('click', e=>{{ if(e.target===e.currentTarget) cerrarDetalleProv(); }});
 
 // ── Solicitudes cartones ──────────────────────────────────────
 function poblarSelectCartones() {{
@@ -1117,12 +1177,15 @@ function renderPedidoSections() {{
         const info = (shared.pedido_info||{{}})[r.Codigo] || {{}};
         const cant  = info.cantidad !== undefined ? info.cantidad : '—';
         const fecha = info.fecha_entrega ? info.fecha_entrega.split('-').reverse().join('/') : '—';
-        html += `<tr>
+        const hoyISO = new Date().toISOString().slice(0,10);
+        const vencido = info.fecha_entrega && info.fecha_entrega < hoyISO;
+        const vencBadge = vencido ? `<span style="font-size:9px;color:var(--err);font-weight:900;margin-left:6px;">VENCIDO</span>` : '';
+        html += `<tr class="${{vencido?'pedido-vencido':''}}">
           <td style="color:#555;font-size:11px;padding:6px 10px;border-bottom:1px solid #0d1a0d;">${{r.Codigo}}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #0d1a0d;font-size:12px;">${{r.Descripcion}}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #0d1a0d;text-align:right;color:#aaa;font-size:12px;">${{r.StockActual}}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #0d1a0d;text-align:right;color:#22c55e;font-weight:700;font-size:12px;">${{cant}}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #0d1a0d;color:#60a5fa;font-weight:700;font-size:12px;">${{fecha}}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #0d1a0d;color:#60a5fa;font-weight:700;font-size:12px;">${{fecha}}${{vencBadge}}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #0d1a0d;white-space:nowrap;">
             <button class="btn-llego" onclick="abrirModalLlego('${{r.Codigo}}')">✓ LLEGÓ</button>
             <button class="btn-despedido" onclick="desmarcarPedido('${{r.Codigo}}')">Desmarcar</button>
@@ -1298,8 +1361,8 @@ function makeSection(id) {{
         <td style="font-size:11px;color:#aaa">${{r.Codigo}}</td>
         <td>${{r.Descripcion}}${{urgBadge}}</td>
         <td><span class="unidad-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="unidad">${{r.Unidad}}</span></td>
-        <td class="num">${{r.Consumido>0?fmt(r.Consumido):'<span style="color:#444">—</span>'}}</td>
-        <td class="num ${{sc}} ${{stminCls}}">${{fmt(r.StockActual)}}</td>
+        <td class="num">${{r.Consumido>0?fmt(r.Consumido):'<span style="color:#444">—</span>'}}${{r.ConsumoPromDiario>0?`<br><span style="color:#555;font-size:9px;">${{r.ConsumoPromDiario}}/día</span>`:''}}</td>
+        <td class="num ${{sc}} ${{stminCls}}" title="${{r.UltimoIngreso?'Último ingreso: '+r.UltimoIngreso:'Sin ingreso registrado'}}">${{fmt(r.StockActual)}}</td>
         <td class="num"><span class="stmin-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="stmin"></span></td>
         <td><span class="nota-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="logistica"></span></td>
         <td><span class="nota-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="compras"></span></td>
@@ -1322,12 +1385,21 @@ function makeSection(id) {{
     document.getElementById(id+'-wrap').scrollTop=0;
   }}
 
-  return {{filtrar,toggleConsumo,sortBy,render,irPag}};
+  function getFilt() {{ return [...filt]; }}
+  return {{filtrar,toggleConsumo,sortBy,render,irPag,getFilt}};
 }}
 
 // ── Proveedores ───────────────────────────────────────────────
 function renderProveedores() {{
   const content = document.getElementById('prov-content');
+
+  // Toolbar con buscador
+  const busVal = document.getElementById('prov-bus') ? document.getElementById('prov-bus').value.toLowerCase() : '';
+  let toolbar = `<div class="prov-toolbar">
+    <input class="prov-search" id="prov-bus" type="text" placeholder="Buscar proveedor..." value="${{busVal}}" oninput="renderProveedores()">
+    <span style="color:var(--muted);font-size:11px;" id="prov-cnt"></span>
+  </div>`;
+
   const map = {{}};
   ['ins','cart'].forEach(secId => {{
     (DATASETS[secId]||[]).forEach(r => {{
@@ -1339,18 +1411,33 @@ function renderProveedores() {{
     }});
   }});
 
-  const cards = Object.values(map).filter(g => g.arts.length > 0);
   const critCnt = g => g.arts.filter(r => {{
     const st = (shared.stock_minimo||{{}})[r.Codigo];
     return r.StockActual<=0 || (st>0 && r.StockActual<st);
   }}).length;
+
+  // Pedidos activos por proveedor
+  const pedidosActivos = (prov, secId) => {{
+    const arts = (DATASETS[secId]||[]).filter(r =>
+      r.Proveedor === prov && (shared.pedido_realizado||[]).includes(r.Codigo)
+    );
+    if (!arts.length) return null;
+    const fechas = arts.map(r => (shared.pedido_info||{{}})[r.Codigo]?.fecha_entrega).filter(Boolean);
+    const proxima = fechas.sort()[0];
+    return {{ cnt: arts.length, fecha: proxima || '' }};
+  }};
+
+  let cards = Object.values(map).filter(g => g.arts.length > 0);
+  const busLow = document.getElementById('prov-bus') ? document.getElementById('prov-bus').value.toLowerCase().trim() : '';
+  if (busLow) cards = cards.filter(g => g.prov.toLowerCase().includes(busLow));
   cards.sort((a,b) => {{
     const diff = critCnt(b)-critCnt(a);
     return diff!==0 ? diff : b.arts.length-a.arts.length;
   }});
 
   if (!cards.length) {{
-    content.innerHTML = '<div class="prov-empty">Sin artículos pendientes de pedido.</div>';
+    content.innerHTML = toolbar + '<div class="prov-empty">Sin artículos pendientes de pedido.</div>';
+    setTimeout(()=>document.getElementById('prov-bus')?.focus?.(),50);
     return;
   }}
 
@@ -1361,6 +1448,10 @@ function renderProveedores() {{
     const secLabel = g.secId==='ins'?'INSUMOS':'CARTONES';
     const secCls   = g.secId==='ins'?'ins':'cart';
     const provAttr = g.prov.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    const activo   = pedidosActivos(g.prov, g.secId);
+    const activoHtml = activo
+      ? `<div class="prov-card-pedido">✅ ${{activo.cnt}} art. pedidos${{activo.fecha?' · ent. '+activo.fecha.split('-').reverse().join('/'):''}}</div>`
+      : '';
     html += `<div class="prov-card">
       <div>
         <div class="prov-card-name" title="${{g.prov}}">${{g.prov}}</div>
@@ -1380,11 +1471,100 @@ function renderProveedores() {{
           <div class="prov-card-stat-lbl">CONSUMO</div>
         </div>
       </div>
-      <button class="btn-pedir" onclick="pedirProveedor('${{provAttr}}','${{g.secId}}')">📦 PEDIR</button>
+      ${{activoHtml}}
+      <div style="display:flex;gap:6px;">
+        <button class="btn-ver-detalle" style="flex:1;" onclick="verDetalleProv('${{provAttr}}','${{g.secId}}')">🔍 VER DETALLE</button>
+        <button class="btn-pedir" style="flex:2;" onclick="pedirProveedor('${{provAttr}}','${{g.secId}}')">📦 PEDIR</button>
+      </div>
     </div>`;
   }});
   html += '</div>';
-  content.innerHTML = html;
+  content.innerHTML = toolbar + html;
+  setTimeout(()=>{{ const el=document.getElementById('prov-bus'); if(el&&busLow) el.setSelectionRange(el.value.length,el.value.length); }},10);
+  const cntEl = document.getElementById('prov-cnt');
+  if(cntEl) cntEl.textContent = cards.length + ' proveedor'+(cards.length!==1?'es':'');
+}}
+
+// ── Sync manual ───────────────────────────────────────────────
+async function syncManual() {{
+  const btns = document.querySelectorAll('.btn-sync');
+  btns.forEach(b=>{{b.textContent='↺ …';b.disabled=true;}});
+  try {{
+    const r = await fetch(SERVER+'/api/shared', {{signal:AbortSignal.timeout(4000)}});
+    const nuevo = await r.json();
+    Object.assign(shared, nuevo);
+    shared.urgente          = shared.urgente          || [];
+    shared.desuso           = shared.desuso           || [];
+    shared.stock_minimo     = shared.stock_minimo     || {{}};
+    shared.pedido_realizado = shared.pedido_realizado || [];
+    shared.pedido_info      = shared.pedido_info      || {{}};
+    shared.notas            = shared.notas            || {{}};
+    shared.solicitudes_cartones = shared.solicitudes_cartones || [];
+    shared.historial        = shared.historial        || [];
+    if (S.ins)  S.ins.filtrar();
+    if (S.cart) S.cart.filtrar();
+    renderPedidoSections(); renderSolicitudes(); actualizarBadgeTab(); actualizarBadgesUrgente(); renderDesusoTables();
+    if (tabActual==='hist')  renderHistorial();
+    if (tabActual==='prov')  renderProveedores();
+  }} catch(e) {{}} finally {{
+    btns.forEach(b=>{{b.textContent='↺ SYNC';b.disabled=false;}});
+  }}
+}}
+
+// ── Exportar CSV ──────────────────────────────────────────────
+function exportarCSV(id) {{
+  const cols = ['Codigo','Descripcion','Unidad','Consumido','StockActual','ConsumoPromDiario','UltimoIngreso'];
+  const hdrs = ['CÓDIGO','DESCRIPCIÓN','UNIDAD','CONSUMIDO','STOCK DEP.','CONS/DÍA','ÚLTIMO INGRESO'];
+  const sec = window.S && S[id];
+  const rows = sec ? sec.getFilt() : DATASETS[id];
+  const lines = [hdrs.join(';')];
+  rows.forEach(r => {{
+    lines.push(cols.map(c => {{
+      const v = r[c]===undefined?'':String(r[c]).replace(/;/g,',');
+      return v.includes(' ')||v.includes(',') ? '"'+v+'"' : v;
+    }}).join(';'));
+  }});
+  const blob = new Blob(['﻿'+lines.join('\\r\\n')], {{type:'text/csv;charset=utf-8'}});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `insumos_${{id}}_${{new Date().toISOString().slice(0,10)}}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}}
+
+// ── Detalle proveedor ─────────────────────────────────────────
+let detalleProv = null;
+function verDetalleProv(prov, secId) {{
+  const arts = (DATASETS[secId]||[]).filter(r =>
+    r.Proveedor === prov &&
+    !(shared.pedido_realizado||[]).includes(r.Codigo) &&
+    !(shared.desuso||[]).includes(r.Codigo)
+  );
+  detalleProv = {{ prov, secId }};
+  document.getElementById('dpm-prov').textContent = prov;
+  const secLabel = secId==='ins'?'INSUMOS':'CARTONES';
+  document.getElementById('dpm-sub').textContent = secLabel+' · '+arts.length+' artículo'+(arts.length!==1?'s':'')+' pendiente'+(arts.length!==1?'s':'');
+  document.getElementById('dpm-tbody').innerHTML = arts.map(r => {{
+    const stmin = (shared.stock_minimo||{{}})[r.Codigo];
+    let sug;
+    if (r.ConsumidoDesdeIngreso > 0)             sug = r.ConsumidoDesdeIngreso;
+    else if (stmin > 0 && r.StockActual < stmin) sug = stmin - r.StockActual;
+    else if (r.Consumido > 0)                    sug = r.Consumido;
+    else                                         sug = '—';
+    const sc = r.StockActual<=0?'color:var(--err);font-weight:700':(r.StockActual>0?'color:var(--ok)':'');
+    const critico = r.StockActual<=0 || (stmin>0 && r.StockActual<stmin);
+    return `<tr style="${{critico?'background:rgba(239,68,68,0.06)':''}}">
+      <td style="color:#555;font-size:10px;padding:5px 10px;">${{r.Codigo}}</td>
+      <td style="padding:5px 10px;font-size:12px;">${{r.Descripcion}}</td>
+      <td style="padding:5px 10px;text-align:right;${{sc}}">${{r.StockActual}}</td>
+      <td style="padding:5px 10px;text-align:right;color:#aaa">${{r.Consumido||'—'}}</td>
+      <td style="padding:5px 10px;text-align:right;color:#22c55e;font-weight:700">${{sug}}</td>
+    </tr>`;
+  }}).join('') || '<tr><td colspan="5" style="color:#333;padding:16px;text-align:center;">Sin artículos pendientes</td></tr>';
+  document.getElementById('dpm-pedir-btn').onclick = () => {{ cerrarDetalleProv(); pedirProveedor(prov, secId); }};
+  document.getElementById('detalle-prov-modal').classList.add('open');
+}}
+function cerrarDetalleProv() {{
+  document.getElementById('detalle-prov-modal').classList.remove('open');
 }}
 
 // ── Init ──────────────────────────────────────────────────────
