@@ -1250,9 +1250,10 @@ function confirmarLlego() {
     quien: urgInfo&&typeof urgInfo==='object' ? urgInfo.quien : '',
     cantidad: cant, nota
   });
+  if (shared.pedido_info) delete shared.pedido_info[llegoCod];
   shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c=>c!==llegoCod);
   shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==llegoCod);
-  saveShared({pedido_realizado:shared.pedido_realizado, urgente:shared.urgente, historial:shared.historial});
+  saveShared({pedido_realizado:shared.pedido_realizado, pedido_info:shared.pedido_info, urgente:shared.urgente, historial:shared.historial});
   cerrarModalLlego();
   S.ins.filtrar(); S.cart.filtrar();
   renderPedidoSections(); actualizarBadgesUrgente();
@@ -1502,16 +1503,17 @@ function abrirModalLlegoGrp(prov, secId) {
   let html = '';
   arts.forEach(r => {
     const info = (shared.pedido_info||{})[r.Codigo] || {};
-    const cantPed = info.cantidad !== undefined ? info.cantidad : 0;
+    const cantPed = (info.cantidad > 0) ? info.cantidad : '';
+    const cantDisp = cantPed || '—';
     html += `<tr>
       <td style="text-align:center;padding:6px 8px;border-bottom:1px solid #1a1a1a;">
         <input type="checkbox" checked class="lgm-chk" id="lgm-chk-${r.Codigo}" style="width:14px;height:14px;accent-color:#22c55e;cursor:pointer;">
       </td>
       <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;">${r.Descripcion} <span style="color:#444;font-size:10px;">${r.Codigo}</span></td>
-      <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:right;color:#22c55e;font-weight:700;">${cantPed}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:right;color:${cantPed?'#22c55e':'#444'};font-weight:700;">${cantDisp}</td>
       <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:right;">
-        <input type="number" min="0" value="${cantPed}" id="lgm-q-${r.Codigo}"
-          style="width:70px;text-align:right;background:#1a1a1a;border:1px solid #333;color:var(--text);padding:3px 6px;border-radius:3px;">
+        <input type="number" min="0" value="${cantPed}" id="lgm-q-${r.Codigo}" placeholder="0"
+          style="width:70px;text-align:right;background:#1a1a1a;border:1px solid ${cantPed?'#333':'#4a3a1a'};color:var(--text);padding:3px 6px;border-radius:3px;">
       </td>
     </tr>`;
   });
@@ -1536,10 +1538,11 @@ function confirmarLlegoGrp() {
     addHistorial({ tipo:'llego', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota });
     shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c=>c!==r.Codigo);
     shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==r.Codigo);
+    if (shared.pedido_info) delete shared.pedido_info[r.Codigo];
     count++;
   });
   if (!count) { cerrarModalLlegoGrp(); return; }
-  saveShared({ pedido_realizado:shared.pedido_realizado, urgente:shared.urgente, historial:shared.historial });
+  saveShared({ pedido_realizado:shared.pedido_realizado, pedido_info:shared.pedido_info, urgente:shared.urgente, historial:shared.historial });
   cerrarModalLlegoGrp();
   S.ins.filtrar(); S.cart.filtrar();
   renderPedidoSections(); actualizarBadgesUrgente();
