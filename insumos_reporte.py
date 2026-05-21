@@ -430,14 +430,14 @@ tbody tr.pedido-vencido > td:first-child{{border-left:3px solid var(--err);}}
 <div class="kpi-row" id="kpi-row"></div>
 
 <div class="tabs">
-  <button class="tab-btn active" id="tab-ins-btn" onclick="switchTab('ins',this)">INSUMOS</button>
+  <button class="tab-btn active" id="tab-prov-btn" onclick="switchTab('prov',this)">PROVEEDORES</button>
+  <button class="tab-btn" id="tab-ins-btn" onclick="switchTab('ins',this)">INSUMOS</button>
   <button class="tab-btn" id="tab-cart-btn" onclick="switchTab('cart',this)">CARTONES</button>
   <button class="tab-btn" id="tab-hist-btn" onclick="switchTab('hist',this)">HISTORIAL</button>
-  <button class="tab-btn" id="tab-prov-btn" onclick="switchTab('prov',this)">PROVEEDORES</button>
 </div>
 
 <!-- ══ INSUMOS ══ -->
-<div id="sec-ins" class="section active">
+<div id="sec-ins" class="section">
   <div class="toolbar">
     <select id="ins-prov" onchange="S.ins.filtrar()"><option value="">Todos los proveedores</option></select>
     <input id="ins-bus" type="text" placeholder="Buscar código o descripción..." oninput="S.ins.filtrar()">
@@ -571,7 +571,7 @@ tbody tr.pedido-vencido > td:first-child{{border-left:3px solid var(--err);}}
 </div>
 
 <!-- ══ PROVEEDORES ══ -->
-<div id="sec-prov" class="section">
+<div id="sec-prov" class="section active">
   <div id="prov-content"></div>
 </div>
 
@@ -1572,7 +1572,7 @@ const S = {{}};
 loadShared().then(() => {{
   S.ins  = makeSection('ins');
   S.cart = makeSection('cart');
-  renderKpis('ins');
+  renderProveedores();
   S.ins.render();
   S.cart.render();
   poblarSelectCartones();
