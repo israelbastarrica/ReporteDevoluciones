@@ -337,6 +337,22 @@ tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
 .pedido-prov-group{{border-top:1px solid #0d1a0d;}}
 .pedido-prov-hdr{{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:#071207;gap:10px;}}
 .pedido-prov-hdr-name{{font-size:10px;font-weight:700;color:#3a6a3a;letter-spacing:.5px;}}
+/* Grilla de proveedores */
+.prov-grid{{display:flex;gap:12px;padding:16px 24px;flex-wrap:wrap;}}
+.prov-card{{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;width:230px;display:flex;flex-direction:column;gap:10px;}}
+.prov-card-name{{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:12px;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
+.prov-card-sec{{font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:2px;display:inline-block;margin-top:3px;}}
+.prov-card-sec.ins{{background:#0d1a2e;color:#60a5fa;}}
+.prov-card-sec.cart{{background:#0a1e0a;color:#22c55e;}}
+.prov-card-stats{{display:flex;gap:6px;}}
+.prov-card-stat{{display:flex;flex-direction:column;align-items:center;background:#1a1a1a;border-radius:4px;padding:6px 4px;flex:1;}}
+.prov-card-stat-val{{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:20px;color:var(--accent);}}
+.prov-card-stat-val.crit{{color:var(--err);}}
+.prov-card-stat-val.muted{{color:var(--muted);}}
+.prov-card-stat-lbl{{font-size:8px;color:#555;letter-spacing:.3px;margin-top:2px;text-align:center;}}
+.btn-pedir{{background:#0a1e3a;border:1px solid #1a4a8a;color:#60a5fa;padding:8px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;text-align:center;}}
+.btn-pedir:hover{{background:#0d2a4a;border-color:#60a5fa;}}
+.prov-empty{{color:#333;font-style:italic;font-size:13px;padding:48px 24px;}}
 </style>
 </head>
 <body>
@@ -386,6 +402,7 @@ tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
   <button class="tab-btn active" id="tab-ins-btn" onclick="switchTab('ins',this)">INSUMOS</button>
   <button class="tab-btn" id="tab-cart-btn" onclick="switchTab('cart',this)">CARTONES</button>
   <button class="tab-btn" id="tab-hist-btn" onclick="switchTab('hist',this)">HISTORIAL</button>
+  <button class="tab-btn" id="tab-prov-btn" onclick="switchTab('prov',this)">PROVEEDORES</button>
 </div>
 
 <!-- ══ INSUMOS ══ -->
@@ -516,6 +533,11 @@ tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
       <tbody id="hist-tbody"></tbody>
     </table>
   </div>
+</div>
+
+<!-- ══ PROVEEDORES ══ -->
+<div id="sec-prov" class="section">
+  <div id="prov-content"></div>
 </div>
 
 <!-- Modal pedido -->
@@ -803,6 +825,9 @@ function switchTab(id, btn) {{
   if (id==='hist') {{
     document.getElementById('kpi-row').innerHTML='';
     renderHistorial();
+  }} else if (id==='prov') {{
+    document.getElementById('kpi-row').innerHTML='';
+    renderProveedores();
   }} else {{
     renderKpis(id);
   }}
@@ -886,7 +911,10 @@ let pedidoProvData = null;
 
 function onCheckProveedor(e, el, secId) {{
   e.target.checked = false;
-  const prov = el.dataset.prov;
+  pedirProveedor(el.dataset.prov, secId);
+}}
+
+function pedirProveedor(prov, secId) {{
   const arts = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov &&
     !(shared.pedido_realizado||[]).includes(r.Codigo) &&
@@ -896,11 +924,18 @@ function onCheckProveedor(e, el, secId) {{
   pedidoProvData = {{ prov, secId, arts }};
   document.getElementById('ppm-prov').textContent = prov;
   document.getElementById('ppm-tbody').innerHTML = arts.map(r => {{
-    const cantAuto = r.ConsumidoDesdeIngreso >= 0 ? r.ConsumidoDesdeIngreso : r.Consumido;
+    const stmin = (shared.stock_minimo||{{}})[r.Codigo];
+    let cantAuto;
+    if (r.ConsumidoDesdeIngreso > 0)              cantAuto = r.ConsumidoDesdeIngreso;
+    else if (stmin > 0 && r.StockActual < stmin)  cantAuto = stmin - r.StockActual;
+    else if (r.Consumido > 0)                     cantAuto = r.Consumido;
+    else                                          cantAuto = '';
+    const stminBadge = (stmin > 0 && r.StockActual < stmin)
+      ? `<span style="font-size:9px;color:var(--err);margin-left:4px;">▼mín ${{stmin}}</span>` : '';
     return `<tr>
       <td style="color:#555;font-size:10px">${{r.Codigo}}</td>
-      <td>${{r.Descripcion}}</td>
-      <td style="text-align:right"><input class="ppm-cant" type="number" min="0" value="${{cantAuto||''}}" id="ppm-c-${{r.Codigo}}"></td>
+      <td>${{r.Descripcion}}${{stminBadge}}</td>
+      <td style="text-align:right"><input class="ppm-cant" type="number" min="0" value="${{cantAuto}}" id="ppm-c-${{r.Codigo}}"></td>
     </tr>`;
   }}).join('');
   document.getElementById('ppm-fecha').value = '';
@@ -1288,6 +1323,68 @@ function makeSection(id) {{
   }}
 
   return {{filtrar,toggleConsumo,sortBy,render,irPag}};
+}}
+
+// ── Proveedores ───────────────────────────────────────────────
+function renderProveedores() {{
+  const content = document.getElementById('prov-content');
+  const map = {{}};
+  ['ins','cart'].forEach(secId => {{
+    (DATASETS[secId]||[]).forEach(r => {{
+      if ((shared.desuso||[]).includes(r.Codigo)) return;
+      if ((shared.pedido_realizado||[]).includes(r.Codigo)) return;
+      const key = r.Proveedor+'|'+secId;
+      if (!map[key]) map[key] = {{ prov:r.Proveedor, secId, arts:[] }};
+      map[key].arts.push(r);
+    }});
+  }});
+
+  const cards = Object.values(map).filter(g => g.arts.length > 0);
+  const critCnt = g => g.arts.filter(r => {{
+    const st = (shared.stock_minimo||{{}})[r.Codigo];
+    return r.StockActual<=0 || (st>0 && r.StockActual<st);
+  }}).length;
+  cards.sort((a,b) => {{
+    const diff = critCnt(b)-critCnt(a);
+    return diff!==0 ? diff : b.arts.length-a.arts.length;
+  }});
+
+  if (!cards.length) {{
+    content.innerHTML = '<div class="prov-empty">Sin artículos pendientes de pedido.</div>';
+    return;
+  }}
+
+  let html = '<div class="prov-grid">';
+  cards.forEach(g => {{
+    const cc = critCnt(g);
+    const consCnt = g.arts.filter(r=>r.Consumido>0).length;
+    const secLabel = g.secId==='ins'?'INSUMOS':'CARTONES';
+    const secCls   = g.secId==='ins'?'ins':'cart';
+    const provAttr = g.prov.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    html += `<div class="prov-card">
+      <div>
+        <div class="prov-card-name" title="${{g.prov}}">${{g.prov}}</div>
+        <span class="prov-card-sec ${{secCls}}">${{secLabel}}</span>
+      </div>
+      <div class="prov-card-stats">
+        <div class="prov-card-stat">
+          <div class="prov-card-stat-val">${{g.arts.length}}</div>
+          <div class="prov-card-stat-lbl">PENDIENTES</div>
+        </div>
+        <div class="prov-card-stat">
+          <div class="prov-card-stat-val ${{cc>0?'crit':'muted'}}">${{cc}}</div>
+          <div class="prov-card-stat-lbl">CRÍTICOS</div>
+        </div>
+        <div class="prov-card-stat">
+          <div class="prov-card-stat-val muted">${{consCnt}}</div>
+          <div class="prov-card-stat-lbl">CONSUMO</div>
+        </div>
+      </div>
+      <button class="btn-pedir" onclick="pedirProveedor('${{provAttr}}','${{g.secId}}')">📦 PEDIR</button>
+    </div>`;
+  }});
+  html += '</div>';
+  content.innerHTML = html;
 }}
 
 // ── Init ──────────────────────────────────────────────────────
