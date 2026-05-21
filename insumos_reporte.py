@@ -1254,7 +1254,10 @@ function renderHistorial() {{
             <td style="color:#aaa">—</td>
             <td class="num" style="color:#aaa">${{fmt(total)}}</td>
             <td style="color:#555;font-size:10px;">ver ▾</td>
-            <td><button class="hist-del" onclick="event.stopPropagation();eliminarGrupoHist('${{v.rk}}')">Eliminar</button></td>
+            <td style="white-space:nowrap;display:flex;gap:4px;padding:4px 6px;align-items:center;">
+              <button class="btn-dl-txt" onclick="event.stopPropagation();descargarTxtLlego('${{v.rk}}')">↓ TXT</button>
+              <button class="hist-del" onclick="event.stopPropagation();eliminarGrupoHist('${{v.rk}}')">Eliminar</button>
+            </td>
           </tr>
           <tr id="detg-${{v.rk}}" style="display:none;background:#0d0d0d">
             <td colspan="7" style="padding:6px 24px 10px">
@@ -1325,6 +1328,16 @@ function redownloadTxtGrupo(rk) {{
   const g = _histGruposRender[rk];
   if (!g) return;
   descargarTxtPedido(g.prov, g.items, g.fechaEnt);
+}}
+function descargarTxtLlego(rk) {{
+  const g = _histGruposRender[rk];
+  if (!g) return;
+  const lines = g.items.map(i => i.cantidad + '+' + i.codigo.toLowerCase() + '!');
+  const blob = new Blob([lines.join('\\n')], {{type:'text/plain'}});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'dragon_llego_' + g.prov.replace(/[^a-zA-Z0-9]/g,'_') + '_' + g.fecha.replace(/[^0-9]/g,'').slice(0,8) + '.txt';
+  a.click(); URL.revokeObjectURL(url);
 }}
 function eliminarGrupoHist(rk) {{
   const g = _histGruposRender[rk];
