@@ -794,10 +794,12 @@ function onCheckProveedor(e, el, secId) {
 }
 
 function pedirProveedor(prov, secId) {
+  const consEfectivo = r => r.ConsumidoDesdeIngreso>=0 ? r.ConsumidoDesdeIngreso : r.Consumido;
   const arts = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov &&
     !(shared.pedido_realizado||[]).includes(r.Codigo) &&
-    !(shared.desuso||[]).includes(r.Codigo)
+    !(shared.desuso||[]).includes(r.Codigo) &&
+    consEfectivo(r) > 0
   );
   if (!arts.length) return;
   pedidoProvData = { prov, secId, arts };
@@ -829,13 +831,14 @@ function confirmarPedidoProv() {
   const fecha = document.getElementById('ppm-fecha').value;
   if (!fecha) { document.getElementById('ppm-fecha').focus(); return; }
   const { prov, secId, arts } = pedidoProvData;
-  let count = 0;
+  let count = 0, confirmados = [];
   arts.forEach(r => {
     const cant = parseInt(document.getElementById('ppm-c-'+r.Codigo)?.value)||0;
     if (cant <= 0) return;
     (shared.pedido_realizado = shared.pedido_realizado||[]).push(r.Codigo);
     (shared.pedido_info = shared.pedido_info||{})[r.Codigo] = { cantidad:cant, fecha_entrega:fecha, proveedor:prov };
     addHistorial({ tipo:'pedido', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota:`Entrega: ${fecha} · ${prov}` });
+    confirmados.push({ codigo:r.Codigo, descripcion:r.Descripcion, cantidad:cant });
     count++;
   });
   if (!count) { cerrarModalPedidoProv(); return; }
@@ -843,6 +846,32 @@ function confirmarPedidoProv() {
   cerrarModalPedidoProv();
   S[secId].filtrar();
   renderPedidoSections();
+  descargarTxtPedido(prov, confirmados, fecha);
+}
+
+function descargarTxtPedido(prov, arts, fecha) {
+  const hoy = new Date().toLocaleDateString('es-AR');
+  const fechaEnt = fecha ? fecha.split('-').reverse().join('/') : '?';
+  const sep = '-'.repeat(60);
+  const lines = [
+    `PEDIDO A: ${prov}`,
+    `Fecha: ${hoy}`,
+    `Entrega estimada: ${fechaEnt}`,
+    '',
+    `${('CÓDIGO').padEnd(12)} ${('DESCRIPCIÓN').padEnd(38)} ${('CANT.').padStart(6)}`,
+    sep,
+    ...arts.map(r =>
+      `${r.codigo.padEnd(12)} ${r.descripcion.substring(0,38).padEnd(38)} ${String(r.cantidad).padStart(6)}`
+    ),
+    sep,
+    `Total artículos: ${arts.length}`,
+    `Total unidades:  ${arts.reduce((s,r)=>s+r.cantidad,0)}`,
+  ];
+  const blob = new Blob([lines.join('\r\n')], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pedido_${prov.replace(/[^a-z0-9áéíóúüñ]/gi,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 document.getElementById('pedido-prov-modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) cerrarModalPedidoProv(); });
