@@ -468,7 +468,7 @@ tbody tr.pedido-vencido > td:first-child{{border-left:3px solid var(--err);}}
         <th onclick="S.ins.sortBy(0)">CÓDIGO</th>
         <th onclick="S.ins.sortBy(1)">DESCRIPCIÓN</th>
         <th onclick="S.ins.sortBy(2)">UNIDAD</th>
-        <th onclick="S.ins.sortBy(3)" class="num">CONSUMIDO</th>
+        <th onclick="S.ins.sortBy(3)" class="num" title="Desde último ingreso de MSTOCK cuando está disponible; total histórico si no hay ingreso registrado">CONSUMIDO ▾</th>
         <th onclick="S.ins.sortBy(4)" class="num">STOCK DEP.</th>
         <th class="num" style="min-width:70px;">STOCK MÍN.</th>
         <th style="min-width:130px;">LOGÍSTICA</th>
@@ -528,7 +528,7 @@ tbody tr.pedido-vencido > td:first-child{{border-left:3px solid var(--err);}}
         <th onclick="S.cart.sortBy(0)">CÓDIGO</th>
         <th onclick="S.cart.sortBy(1)">DESCRIPCIÓN</th>
         <th onclick="S.cart.sortBy(2)">UNIDAD</th>
-        <th onclick="S.cart.sortBy(3)" class="num">CONSUMIDO</th>
+        <th onclick="S.cart.sortBy(3)" class="num" title="Desde último ingreso de MSTOCK cuando está disponible; total histórico si no hay ingreso registrado">CONSUMIDO ▾</th>
         <th onclick="S.cart.sortBy(4)" class="num">STOCK DEP.</th>
         <th class="num" style="min-width:70px;">STOCK MÍN.</th>
         <th style="min-width:130px;">LOGÍSTICA</th>
@@ -1283,7 +1283,8 @@ function makeSection(id) {{
     filt = data.filter(r => {{
       if ((shared.desuso||[]).includes(r.Codigo)) return false;
       if ((shared.pedido_realizado||[]).includes(r.Codigo)) return false;
-      if (verConsumo && r.Consumido===0) return false;
+      const consEfectivo = r.ConsumidoDesdeIngreso>=0 ? r.ConsumidoDesdeIngreso : r.Consumido;
+      if (verConsumo && consEfectivo===0) return false;
       if (prov && r.Proveedor!==prov) return false;
       if (bus && !(r.Codigo.toLowerCase().includes(bus)||r.Descripcion.toLowerCase().includes(bus))) return false;
       return true;
@@ -1365,7 +1366,11 @@ function makeSection(id) {{
         <td style="font-size:11px;color:#aaa">${{r.Codigo}}</td>
         <td>${{r.Descripcion}}${{urgBadge}}${{ingresadoBadge}}</td>
         <td><span class="unidad-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="unidad">${{r.Unidad}}</span></td>
-        <td class="num">${{r.Consumido>0?fmt(r.Consumido):'<span style="color:#444">—</span>'}}${{r.ConsumoPromDiario>0?`<br><span style="color:#555;font-size:9px;">${{r.ConsumoPromDiario}}/día</span>`:''}}</td>
+        <td class="num" title="${{r.ConsumidoDesdeIngreso>=0?'Desde último ingreso':'Total histórico (sin ingreso registrado)'}}">
+          ${{r.ConsumidoDesdeIngreso>=0
+            ? (r.ConsumidoDesdeIngreso>0 ? fmt(r.ConsumidoDesdeIngreso) : '<span style="color:#4ade80;font-size:10px;font-weight:900;">0</span>')
+            : (r.Consumido>0 ? '<span style="color:#666" title="Total histórico">'+fmt(r.Consumido)+'</span>' : '<span style="color:#444">—</span>')
+          }}${{r.ConsumoPromDiario>0?`<br><span style="color:#555;font-size:9px;">${{r.ConsumoPromDiario}}/día</span>`:''}}</td>
         <td class="num ${{sc}} ${{stminCls}}" title="${{r.UltimoIngreso?'Último ingreso: '+r.UltimoIngreso:'Sin ingreso registrado'}}">${{fmt(r.StockActual)}}</td>
         <td class="num"><span class="stmin-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="stmin"></span></td>
         <td><span class="nota-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="logistica"></span></td>
