@@ -928,7 +928,7 @@ function abrirModalPedido(cod) {{
   document.getElementById('pedido-modal-art').textContent = art ? art.Descripcion : cod;
   const urgInfo = getUrgenteInfo(cod);
   const cantAuto = urgInfo&&typeof urgInfo==='object' ? urgInfo.cantidad
-    : (art&&art.ConsumidoDesdeIngreso>=0 ? art.ConsumidoDesdeIngreso : (art?art.Consumido:''));
+    : (art&&art.ConsumidoDesdeIngreso>0 ? art.ConsumidoDesdeIngreso : '');
   document.getElementById('pedido-cant').value = cantAuto||'';
   document.getElementById('pedido-fecha').value = '';
   document.getElementById('pedido-modal').classList.add('open');
@@ -976,20 +976,13 @@ function onCheckProveedor(e, el, secId) {{
 }}
 
 function pedirProveedor(prov, secId) {{
-  const getCantSugerida = r => {{
-    const st = (shared.stock_minimo||{{}})[r.Codigo];
-    if (r.ConsumidoDesdeIngreso > 0)       return r.ConsumidoDesdeIngreso;
-    if (st > 0 && r.StockActual < st)      return st - r.StockActual;
-    if (r.Consumido > 0)                   return r.Consumido;
-    return 0;
-  }};
   const todos = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov &&
     !(shared.pedido_realizado||[]).includes(r.Codigo) &&
     !(shared.desuso||[]).includes(r.Codigo)
   );
-  const conCons = todos.filter(r => getCantSugerida(r) > 0);
-  const sinCons = todos.filter(r => getCantSugerida(r) === 0);
+  const conCons = todos.filter(r => r.ConsumidoDesdeIngreso > 0);
+  const sinCons = todos.filter(r => r.ConsumidoDesdeIngreso <= 0);
   const arts = [...conCons, ...sinCons];
   if (!arts.length) return;
   pedidoProvData = {{ prov, secId, arts }};
@@ -997,16 +990,15 @@ function pedirProveedor(prov, secId) {{
   let tbodyHtml = '';
   let separadorPuesto = false;
   arts.forEach(r => {{
-    const ce = getCantSugerida(r);
-    if (!separadorPuesto && ce === 0 && conCons.length > 0) {{
+    if (!separadorPuesto && r.ConsumidoDesdeIngreso <= 0 && conCons.length > 0) {{
       separadorPuesto = true;
-      tbodyHtml += `<tr><td colspan="3" style="padding:4px 10px;background:#111;color:#444;font-size:9px;font-weight:700;letter-spacing:.5px;text-align:center;">── SIN CONSUMO REGISTRADO ──</td></tr>`;
+      tbodyHtml += `<tr><td colspan="3" style="padding:4px 10px;background:#111;color:#444;font-size:9px;font-weight:700;letter-spacing:.5px;text-align:center;">── SIN CONSUMO DESDE ÚLTIMO INGRESO ──</td></tr>`;
     }}
     const stmin = (shared.stock_minimo||{{}})[r.Codigo];
-    const cantAuto = ce > 0 ? ce : '';
+    const cantAuto = r.ConsumidoDesdeIngreso > 0 ? r.ConsumidoDesdeIngreso : '';
     const stminBadge = (stmin > 0 && r.StockActual < stmin)
       ? `<span style="font-size:9px;color:var(--err);margin-left:4px;">▼mín ${{stmin}}</span>` : '';
-    const dimStyle = ce === 0 ? 'opacity:.45;' : '';
+    const dimStyle = r.ConsumidoDesdeIngreso <= 0 ? 'opacity:.45;' : '';
     tbodyHtml += `<tr style="${{dimStyle}}">
       <td style="color:#555;font-size:10px">${{r.Codigo}}</td>
       <td>${{r.Descripcion}}${{stminBadge}}</td>
@@ -1598,11 +1590,7 @@ function verDetalleProv(prov, secId) {{
   document.getElementById('dpm-sub').textContent = secLabel+' · '+arts.length+' artículo'+(arts.length!==1?'s':'')+' pendiente'+(arts.length!==1?'s':'');
   document.getElementById('dpm-tbody').innerHTML = arts.map(r => {{
     const stmin = (shared.stock_minimo||{{}})[r.Codigo];
-    let sug;
-    if (r.ConsumidoDesdeIngreso > 0)             sug = r.ConsumidoDesdeIngreso;
-    else if (stmin > 0 && r.StockActual < stmin) sug = stmin - r.StockActual;
-    else if (r.Consumido > 0)                    sug = r.Consumido;
-    else                                         sug = '—';
+    const sug = r.ConsumidoDesdeIngreso > 0 ? r.ConsumidoDesdeIngreso : '—';
     const sc = r.StockActual<=0?'color:var(--err);font-weight:700':(r.StockActual>0?'color:var(--ok)':'');
     const critico = r.StockActual<=0 || (stmin>0 && r.StockActual<stmin);
     return `<tr style="${{critico?'background:rgba(239,68,68,0.06)':''}}">
