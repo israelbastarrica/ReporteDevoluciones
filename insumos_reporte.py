@@ -1332,11 +1332,20 @@ function redownloadTxtGrupo(rk) {{
 function descargarTxtLlego(rk) {{
   const g = _histGruposRender[rk];
   if (!g) return;
+  const currentGrupoId = (shared.historial||[]).find(e => g.ids.includes(e.id))?.grupoId;
+  const gruposProvOrdenados = [...new Set(
+    [...(shared.historial||[])]
+      .filter(e => e.tipo==='llego' && (e.proveedor===g.prov || (!e.proveedor && !g.prov)))
+      .sort((a,b) => (a.fecha||'') < (b.fecha||'') ? -1 : 1)
+      .map(e => e.grupoId || ('_ts_'+e.fecha))
+  )];
+  const nro = gruposProvOrdenados.indexOf(currentGrupoId || ('_ts_'+g.fecha)) + 1 || 1;
+  const provNombre = g.prov.replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/ +/g,'-').toUpperCase();
   const lines = g.items.map(i => i.cantidad + '+' + i.codigo.toLowerCase() + '!');
   const blob = new Blob([lines.join('\\n')], {{type:'text/plain'}});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'dragon_llego_' + g.prov.replace(/[^a-zA-Z0-9]/g,'_') + '_' + g.fecha.replace(/[^0-9]/g,'').slice(0,8) + '.txt';
+  a.href = url; a.download = 'LLEGO-' + provNombre + '-' + nro + '.txt';
   a.click(); URL.revokeObjectURL(url);
 }}
 function eliminarGrupoHist(rk) {{
