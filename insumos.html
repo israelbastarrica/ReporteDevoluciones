@@ -866,6 +866,19 @@ function onPpmCantChange(el) {
     row.style.fontWeight  = modificado ? '700' : '';
   }
   el.style.borderColor = modificado ? 'var(--accent)' : '';
+  // Burbujear al tope si tiene cantidad > 0
+  const cant = parseFloat(el.value) || 0;
+  const tbody = document.getElementById('ppm-tbody');
+  if (cant > 0 && row && tbody && tbody.firstElementChild !== row) {
+    const elId = el.id;
+    tbody.prepend(row);
+    const restored = document.getElementById(elId);
+    if (restored) {
+      restored.focus();
+      const l = restored.value.length;
+      restored.setSelectionRange(l, l);
+    }
+  }
 }
 
 function descargarTxtPedido(prov, arts, fecha) {
