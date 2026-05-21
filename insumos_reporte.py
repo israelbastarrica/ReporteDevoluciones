@@ -311,9 +311,9 @@ tbody tr.pedido-done td{{opacity:.5;}}
 tbody tr.group-urg{{background:#1a0808!important;border-left:3px solid var(--err);}}
 tbody tr.group-urg td{{color:var(--err)!important;}}
 /* Filas críticas */
-tbody tr.row-critico > td{{background:rgba(249,115,22,0.07)!important;}}
-tbody tr.row-critico > td:first-child{{border-left:3px solid #f97316;}}
-tbody tr.row-critico:hover > td{{background:rgba(249,115,22,0.12)!important;}}
+tbody tr.row-critico > td{{background:rgba(239,68,68,0.08)!important;}}
+tbody tr.row-critico > td:first-child{{border-left:3px solid #ef4444;}}
+tbody tr.row-critico:hover > td{{background:rgba(239,68,68,0.14)!important;}}
 /* Modal pedido por proveedor */
 #pedido-prov-modal{{display:none;position:fixed;inset:0;z-index:10000;background:#0009;align-items:center;justify-content:center;}}
 #pedido-prov-modal.open{{display:flex;}}
@@ -393,11 +393,7 @@ tbody tr.row-critico:hover > td{{background:rgba(249,115,22,0.12)!important;}}
   <div class="toolbar">
     <select id="ins-prov" onchange="S.ins.filtrar()"><option value="">Todos los proveedores</option></select>
     <input id="ins-bus" type="text" placeholder="Buscar código o descripción..." oninput="S.ins.filtrar()">
-    <button id="ins-critico" onclick="S.ins.toggleCritico()" style="background:#2a1010;border:1px solid #6b2020;color:#f97316;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;">⚠ CRÍTICO</button>
-    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--muted);font-size:12px;">
-      <input type="checkbox" id="ins-sincons" onchange="S.ins.filtrar()" style="accent-color:var(--accent);">
-      Sin consumo
-    </label>
+    <button id="ins-consumo" onclick="S.ins.toggleConsumo()" style="background:#0a1e0a;border:1px solid #1a4a1a;color:#22c55e;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;">VER CONSUMO</button>
     <button class="desuso-toggle" onclick="toggleDesusoPanel('ins')">Ver desuso</button>
   </div>
   <div class="cnt" id="ins-cnt"></div>
@@ -455,11 +451,7 @@ tbody tr.row-critico:hover > td{{background:rgba(249,115,22,0.12)!important;}}
   <div class="toolbar">
     <select id="cart-prov" onchange="S.cart.filtrar()"><option value="">Todos los proveedores</option></select>
     <input id="cart-bus" type="text" placeholder="Buscar código o descripción..." oninput="S.cart.filtrar()">
-    <button id="cart-critico" onclick="S.cart.toggleCritico()" style="background:#2a1010;border:1px solid #6b2020;color:#f97316;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;">⚠ CRÍTICO</button>
-    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--muted);font-size:12px;">
-      <input type="checkbox" id="cart-sincons" onchange="S.cart.filtrar()" style="accent-color:var(--accent);">
-      Sin consumo
-    </label>
+    <button id="cart-consumo" onclick="S.cart.toggleConsumo()" style="background:#0a1e0a;border:1px solid #1a4a1a;color:#22c55e;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.5px;">VER CONSUMO</button>
     <button class="desuso-toggle" onclick="toggleDesusoPanel('cart')">Ver desuso</button>
   </div>
   <div class="cnt" id="cart-cnt"></div>
@@ -1132,7 +1124,7 @@ function downloadPedidoTxt(btn) {{
     sep,
     `Total artículos: ${{arts.length}}`,
   ];
-  const blob = new Blob([lines.join('\r\n')], {{type:'text/plain;charset=utf-8'}});
+  const blob = new Blob([lines.join('\\r\\n')], {{type:'text/plain;charset=utf-8'}});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `pedido_${{prov.replace(/[^a-z0-9áéíóúüñ]/gi,'_').slice(0,30)}}_${{new Date().toISOString().slice(0,10)}}.txt`;
@@ -1177,8 +1169,8 @@ document.getElementById('llego-modal').addEventListener('click', e=>{{ if(e.targ
 // ── Sección genérica ──────────────────────────────────────────
 function makeSection(id) {{
   const data = DATASETS[id];
-  let filt = data.filter(r => r.Consumido > 0 && !shared.desuso.includes(r.Codigo) && !(shared.pedido_realizado||[]).includes(r.Codigo));
-  let pg = 1, sortCol = -1, sortDir = 1, critico = false;
+  let filt = data.filter(r => !shared.desuso.includes(r.Codigo) && !(shared.pedido_realizado||[]).includes(r.Codigo));
+  let pg = 1, sortCol = -1, sortDir = 1, verConsumo = false;
 
   const sel = document.getElementById(id+'-prov');
   (PROVS_MAP[id]||[]).forEach(p => {{
@@ -1186,13 +1178,12 @@ function makeSection(id) {{
   }});
 
   function filtrar() {{
-    const prov    = document.getElementById(id+'-prov').value;
-    const bus     = document.getElementById(id+'-bus').value.toLowerCase().trim();
-    const sinCons = document.getElementById(id+'-sincons').checked;
+    const prov = document.getElementById(id+'-prov').value;
+    const bus  = document.getElementById(id+'-bus').value.toLowerCase().trim();
     filt = data.filter(r => {{
       if ((shared.desuso||[]).includes(r.Codigo)) return false;
       if ((shared.pedido_realizado||[]).includes(r.Codigo)) return false;
-      if (critico && !(r.StockActual<=0 || r.Consumido>r.StockActual)) return false;
+      if (verConsumo && r.Consumido===0) return false;
       if (prov && r.Proveedor!==prov) return false;
       if (bus && !(r.Codigo.toLowerCase().includes(bus)||r.Descripcion.toLowerCase().includes(bus))) return false;
       return true;
@@ -1200,12 +1191,12 @@ function makeSection(id) {{
     pg=1; render();
   }}
 
-  function toggleCritico() {{
-    critico=!critico;
-    const btn=document.getElementById(id+'-critico');
-    btn.style.background  = critico?'#f97316':'#2a1010';
-    btn.style.color       = critico?'#000':'#f97316';
-    btn.style.borderColor = critico?'#f97316':'#6b2020';
+  function toggleConsumo() {{
+    verConsumo = !verConsumo;
+    const btn = document.getElementById(id+'-consumo');
+    btn.style.background  = verConsumo ? '#22c55e' : '#0a1e0a';
+    btn.style.color       = verConsumo ? '#000'    : '#22c55e';
+    btn.style.borderColor = verConsumo ? '#22c55e' : '#1a4a1a';
     filtrar();
   }}
 
@@ -1262,7 +1253,7 @@ function makeSection(id) {{
         if (r.StockActual <= stmin) stminCls='stmin-bajo';
         else if (r.StockActual <= stmin*2) stminCls='stmin-alerta';
       }}
-      const esCritico = r.StockActual<=0 || r.Consumido>r.StockActual;
+      const esCritico = r.StockActual<=0 || (stmin!==undefined && stmin>0 && r.StockActual<stmin);
       const rowCls = isUrg?'urg-row':(isDone?'pedido-done':(esCritico?'row-critico':''));
       const urgLabel = urgInfo && typeof urgInfo==='object'
         ? `${{urgInfo.quien}} · ×${{urgInfo.cantidad}}`
@@ -1296,7 +1287,7 @@ function makeSection(id) {{
     document.getElementById(id+'-wrap').scrollTop=0;
   }}
 
-  return {{filtrar,toggleCritico,sortBy,render,irPag}};
+  return {{filtrar,toggleConsumo,sortBy,render,irPag}};
 }}
 
 // ── Init ──────────────────────────────────────────────────────
