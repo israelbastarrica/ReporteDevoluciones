@@ -820,7 +820,7 @@ function pedirProveedor(prov, secId) {
     tbodyHtml += `<tr style="${dimStyle}">
       <td style="color:#555;font-size:10px">${r.Codigo}</td>
       <td>${r.Descripcion}${stminBadge}</td>
-      <td style="text-align:right"><input class="ppm-cant" type="number" min="0" value="${cantAuto}" id="ppm-c-${r.Codigo}"></td>
+      <td style="text-align:right"><input class="ppm-cant" type="number" min="0" value="${cantAuto}" data-orig="${cantAuto}" oninput="onPpmCantChange(this)" id="ppm-c-${r.Codigo}"></td>
     </tr>`;
   });
   document.getElementById('ppm-tbody').innerHTML = tbodyHtml;
@@ -852,6 +852,16 @@ function confirmarPedidoProv() {
   S[secId].filtrar();
   renderPedidoSections();
   descargarTxtPedido(prov, confirmados, fecha);
+}
+
+function onPpmCantChange(el) {
+  const modificado = el.value !== el.dataset.orig;
+  const row = el.closest('tr');
+  if (row) {
+    row.style.color       = modificado ? 'var(--accent)' : '';
+    row.style.fontWeight  = modificado ? '700' : '';
+  }
+  el.style.borderColor = modificado ? 'var(--accent)' : '';
 }
 
 function descargarTxtPedido(prov, arts, fecha) {
