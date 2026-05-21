@@ -267,10 +267,6 @@ tbody tr.pedido-vencido > td:first-child{border-left:3px solid var(--err);}
     <button class="desuso-toggle" onclick="toggleDesusoPanel('ins')">Ver desuso</button>
   </div>
   <div class="cnt" id="ins-cnt"></div>
-  <div class="pedido-sec" id="ins-pedido">
-    <div class="pedido-sec-title">✅ YA PEDIDO</div>
-    <div id="ins-pedido-content"></div>
-  </div>
   <div class="desuso-section" id="ins-desuso">
     <div style="color:#7ef7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">ARTÍCULOS EN DESUSO</div>
     <table>
@@ -327,10 +323,6 @@ tbody tr.pedido-vencido > td:first-child{border-left:3px solid var(--err);}
     <button class="desuso-toggle" onclick="toggleDesusoPanel('cart')">Ver desuso</button>
   </div>
   <div class="cnt" id="cart-cnt"></div>
-  <div class="pedido-sec" id="cart-pedido">
-    <div class="pedido-sec-title">✅ YA PEDIDO</div>
-    <div id="cart-pedido-content"></div>
-  </div>
   <div class="desuso-section" id="cart-desuso">
     <div style="color:#7ef7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;">CARTONES EN DESUSO</div>
     <table>
@@ -787,6 +779,7 @@ document.getElementById('pedido-modal').addEventListener('click', e=>{ if(e.targ
 
 // ── Pedido por proveedor ──────────────────────────────────────
 let pedidoProvData = null;
+let _histGruposRender = {};
 
 function onCheckProveedor(e, el, secId) {
   e.target.checked = false;
@@ -841,12 +834,13 @@ function confirmarPedidoProv() {
   if (!fecha) { document.getElementById('ppm-fecha').focus(); return; }
   const { prov, secId, arts } = pedidoProvData;
   let count = 0, confirmados = [];
+  const grupoId = 'pg_' + Date.now().toString() + Math.random().toString(36).slice(2,6);
   arts.forEach(r => {
     const cant = parseInt(document.getElementById('ppm-c-'+r.Codigo)?.value)||0;
     if (cant <= 0) return;
     (shared.pedido_realizado = shared.pedido_realizado||[]).push(r.Codigo);
     (shared.pedido_info = shared.pedido_info||{})[r.Codigo] = { cantidad:cant, fecha_entrega:fecha, proveedor:prov };
-    addHistorial({ tipo:'pedido', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota:`Entrega: ${fecha} · ${prov}` });
+    addHistorial({ tipo:'pedido', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota:`Entrega: ${fecha} · ${prov}`, grupoId, proveedor:prov, fechaEntrega:fecha });
     confirmados.push({ codigo:r.Codigo, descripcion:r.Descripcion, cantidad:cant });
     count++;
   });
@@ -975,24 +969,109 @@ function renderHistorial() {
   const hist = (shared.historial||[]).filter(e => {
     if (tipo && e.tipo!==tipo) return false;
     const hay = s => String(s||'').toLowerCase().includes(bus);
-    if (bus && !hay(e.descripcion) && !hay(e.quien) && !hay(e.cod) && !hay(e.nota)) return false;
+    if (bus && !hay(e.descripcion) && !hay(e.quien) && !hay(e.cod) && !hay(e.nota) && !hay(e.proveedor)) return false;
     return true;
   });
-  document.getElementById('hist-cnt').textContent = hist.length+' registro'+(hist.length!==1?'s':'');
-  document.getElementById('hist-tbody').innerHTML = hist.length ? hist.map(e=>`
-    <tr>
-      <td style="color:#555;font-size:11px;white-space:nowrap">${e.fecha}</td>
-      <td><span class="tipo-badge ${tipoCls[e.tipo]||''}">${tipoLabel[e.tipo]||e.tipo}</span></td>
-      <td>${e.descripcion||''} ${e.cod?`<span style="color:#333;font-size:10px">${e.cod}</span>`:''}</td>
-      <td style="color:#aaa">${e.quien||'—'}</td>
-      <td class="num" style="color:#aaa">${e.cantidad||'—'}</td>
-      <td><span contenteditable="true" spellcheck="false"
-            style="color:#666;cursor:text;border-radius:3px;padding:1px 5px;min-width:80px;display:inline-block;"
-            onblur="editarNotaHist('${e.id}',this.textContent)"
-          >${e.nota||''}</span></td>
-      <td><button class="hist-del" onclick="eliminarHistorial('${e.id}')">Eliminar</button></td>
-    </tr>`).join('') :
-    '<tr><td colspan="7" style="color:#333;padding:20px;text-align:center;">Sin registros</td></tr>';
+
+  _histGruposRender = {};
+  let grupoIdx = 0;
+  const grupoKeys = {};
+  const virtEntries = [];
+  hist.forEach(e => {
+    if (e.tipo === 'pedido') {
+      const gk = e.grupoId || 'leg_' + (e.nota||'').slice(0,60);
+      if (!grupoKeys[gk]) {
+        const rk = 'hg_' + (grupoIdx++);
+        grupoKeys[gk] = rk;
+        const prov = e.proveedor || ((e.nota||'').match(/·\s*(.+)$/) || [])[1]?.trim() || '';
+        const fechaEnt = e.fechaEntrega || ((e.nota||'').match(/Entrega:\s*([\d-]+)/) || [])[1] || '';
+        _histGruposRender[rk] = { rk, fecha:e.fecha, prov, fechaEnt, items:[], ids:[] };
+        virtEntries.push({ _tipo:'grupo', rk });
+      }
+      const rk = grupoKeys[gk];
+      _histGruposRender[rk].items.push({ codigo:e.cod, descripcion:e.descripcion, cantidad:e.cantidad });
+      _histGruposRender[rk].ids.push(e.id);
+    } else {
+      virtEntries.push({ _tipo:'entry', e });
+    }
+  });
+
+  document.getElementById('hist-cnt').textContent = virtEntries.length+' registro'+(virtEntries.length!==1?'s':'');
+  if (!virtEntries.length) {
+    document.getElementById('hist-tbody').innerHTML = '<tr><td colspan="7" style="color:#333;padding:20px;text-align:center;">Sin registros</td></tr>';
+    return;
+  }
+
+  let html = '';
+  virtEntries.forEach(v => {
+    if (v._tipo === 'grupo') {
+      const g = _histGruposRender[v.rk];
+      const total = g.items.reduce((s,i)=>s+(i.cantidad||0), 0);
+      const fechaEntFmt = g.fechaEnt ? g.fechaEnt.split('-').reverse().join('/') : '?';
+      const subRows = g.items.map(i=>`<tr>
+        <td style="color:#444;padding:3px 8px;">${i.codigo||''}</td>
+        <td style="padding:3px 8px;">${i.descripcion||''}</td>
+        <td style="color:#aaa;text-align:right;padding:3px 8px;">${i.cantidad||0}</td>
+      </tr>`).join('');
+      html += `
+        <tr style="cursor:pointer" onclick="toggleDetHistGrupo('${v.rk}')">
+          <td style="color:#555;font-size:11px;white-space:nowrap">${g.fecha}</td>
+          <td><span class="tipo-badge tipo-pedido">PEDIDO</span></td>
+          <td><strong>${g.prov}</strong><span style="color:#555;font-size:11px;"> · ${g.items.length} art. · entrega ${fechaEntFmt}</span></td>
+          <td style="color:#aaa">—</td>
+          <td class="num" style="color:#aaa">${fmt(total)}</td>
+          <td style="color:#555;font-size:10px;">ver ▾</td>
+          <td style="white-space:nowrap">
+            <button class="hist-del" style="border-color:#2a6b2a;color:#4ade80;margin-right:4px;" onclick="event.stopPropagation();redownloadTxtGrupo('${v.rk}')">↓ TXT</button>
+            <button class="hist-del" onclick="event.stopPropagation();eliminarGrupoHist('${v.rk}')">Eliminar</button>
+          </td>
+        </tr>
+        <tr id="detg-${v.rk}" style="display:none;background:#0d0d0d">
+          <td colspan="7" style="padding:6px 24px 10px">
+            <table style="width:100%;font-size:11px;border-collapse:collapse">
+              <thead><tr>
+                <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CÓDIGO</th>
+                <th style="color:#444;text-align:left;padding:3px 8px;border-bottom:1px solid #1a1a1a;">DESCRIPCIÓN</th>
+                <th style="color:#444;text-align:right;padding:3px 8px;border-bottom:1px solid #1a1a1a;">CANT.</th>
+              </tr></thead>
+              <tbody>${subRows}</tbody>
+            </table>
+          </td>
+        </tr>`;
+    } else {
+      const e = v.e;
+      html += `
+        <tr>
+          <td style="color:#555;font-size:11px;white-space:nowrap">${e.fecha}</td>
+          <td><span class="tipo-badge ${tipoCls[e.tipo]||''}">${tipoLabel[e.tipo]||e.tipo}</span></td>
+          <td>${e.descripcion||''} ${e.cod?`<span style="color:#333;font-size:10px">${e.cod}</span>`:''}</td>
+          <td style="color:#aaa">${e.quien||'—'}</td>
+          <td class="num" style="color:#aaa">${e.cantidad||'—'}</td>
+          <td><span contenteditable="true" spellcheck="false"
+                style="color:#666;cursor:text;border-radius:3px;padding:1px 5px;min-width:80px;display:inline-block;"
+                onblur="editarNotaHist('${e.id}',this.textContent)"
+              >${e.nota||''}</span></td>
+          <td><button class="hist-del" onclick="eliminarHistorial('${e.id}')">Eliminar</button></td>
+        </tr>`;
+    }
+  });
+  document.getElementById('hist-tbody').innerHTML = html;
+}
+function toggleDetHistGrupo(rk) {
+  const el = document.getElementById('detg-' + rk);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+function redownloadTxtGrupo(rk) {
+  const g = _histGruposRender[rk];
+  if (!g) return;
+  descargarTxtPedido(g.prov, g.items, g.fechaEnt);
+}
+function eliminarGrupoHist(rk) {
+  const g = _histGruposRender[rk];
+  if (!g) return;
+  shared.historial = (shared.historial||[]).filter(e => !g.ids.includes(e.id));
+  saveShared({historial: shared.historial});
+  renderHistorial();
 }
 function editarNotaHist(id, nota) {
   const e = (shared.historial||[]).find(x=>x.id===id);
@@ -1294,35 +1373,24 @@ function renderProveedores() {
   ['ins','cart'].forEach(secId => {
     (DATASETS[secId]||[]).forEach(r => {
       if ((shared.desuso||[]).includes(r.Codigo)) return;
-      if ((shared.pedido_realizado||[]).includes(r.Codigo)) return;
       const key = r.Proveedor+'|'+secId;
-      if (!map[key]) map[key] = { prov:r.Proveedor, secId, arts:[] };
-      map[key].arts.push(r);
+      if (!map[key]) map[key] = { prov:r.Proveedor, secId, pending:[], ordered:[] };
+      if ((shared.pedido_realizado||[]).includes(r.Codigo)) map[key].ordered.push(r);
+      else map[key].pending.push(r);
     });
   });
 
-  const critCnt = g => g.arts.filter(r => {
+  const critCnt = g => g.pending.filter(r => {
     const st = (shared.stock_minimo||{})[r.Codigo];
     return r.StockActual<=0 || (st>0 && r.StockActual<st);
   }).length;
 
-  // Pedidos activos por proveedor
-  const pedidosActivos = (prov, secId) => {
-    const arts = (DATASETS[secId]||[]).filter(r =>
-      r.Proveedor === prov && (shared.pedido_realizado||[]).includes(r.Codigo)
-    );
-    if (!arts.length) return null;
-    const fechas = arts.map(r => (shared.pedido_info||{})[r.Codigo]?.fecha_entrega).filter(Boolean);
-    const proxima = fechas.sort()[0];
-    return { cnt: arts.length, fecha: proxima || '' };
-  };
-
-  let cards = Object.values(map).filter(g => g.arts.length > 0);
+  let cards = Object.values(map).filter(g => g.pending.length>0 || g.ordered.length>0);
   const busLow = document.getElementById('prov-bus') ? document.getElementById('prov-bus').value.toLowerCase().trim() : '';
   if (busLow) cards = cards.filter(g => g.prov.toLowerCase().includes(busLow));
   cards.sort((a,b) => {
     const diff = critCnt(b)-critCnt(a);
-    return diff!==0 ? diff : b.arts.length-a.arts.length;
+    return diff!==0 ? diff : (b.pending.length+b.ordered.length)-(a.pending.length+a.ordered.length);
   });
 
   if (!cards.length) {
@@ -1331,17 +1399,31 @@ function renderProveedores() {
     return;
   }
 
+  const hoyISO = new Date().toISOString().slice(0,10);
   let html = '<div class="prov-grid">';
   cards.forEach(g => {
     const cc = critCnt(g);
-    const consCnt = g.arts.filter(r=>r.Consumido>0).length;
+    const consCnt = g.pending.filter(r=>r.Consumido>0).length;
     const secLabel = g.secId==='ins'?'INSUMOS':'CARTONES';
     const secCls   = g.secId==='ins'?'ins':'cart';
     const provAttr = g.prov.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    const activo   = pedidosActivos(g.prov, g.secId);
-    const activoHtml = activo
-      ? `<div class="prov-card-pedido">✅ ${activo.cnt} art. pedidos${activo.fecha?' · ent. '+activo.fecha.split('-').reverse().join('/'):''}</div>`
-      : '';
+    const orderedHtml = g.ordered.length ? `
+      <div style="border-top:1px solid #1a2a1a;margin-top:8px;padding-top:6px;">
+        <div style="font-size:9px;font-weight:700;color:#22c55e;letter-spacing:.5px;margin-bottom:4px;">✅ PEDIDO ACTIVO</div>
+        ${g.ordered.map(r => {
+          const info = (shared.pedido_info||{})[r.Codigo] || {};
+          const cant = info.cantidad !== undefined ? info.cantidad : '—';
+          const fechaEnt = info.fecha_entrega ? info.fecha_entrega.split('-').reverse().join('/') : '—';
+          const vencido = info.fecha_entrega && info.fecha_entrega < hoyISO;
+          return `<div style="display:flex;align-items:center;gap:5px;padding:2px 0;font-size:11px;">
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Descripcion}</span>
+            <span style="color:#22c55e;font-weight:700;flex-shrink:0;">×${cant}</span>
+            <span style="color:${vencido?'var(--err)':'#60a5fa'};flex-shrink:0;font-size:10px;">${fechaEnt}</span>
+            <button class="btn-llego" style="padding:1px 6px;font-size:10px;flex-shrink:0;" onclick="abrirModalLlego('${r.Codigo}')">✓</button>
+            <button class="btn-despedido" style="padding:1px 5px;flex-shrink:0;" onclick="desmarcarPedido('${r.Codigo}')">✗</button>
+          </div>`;
+        }).join('')}
+      </div>` : '';
     html += `<div class="prov-card">
       <div>
         <div class="prov-card-name" title="${g.prov}">${g.prov}</div>
@@ -1349,7 +1431,7 @@ function renderProveedores() {
       </div>
       <div class="prov-card-stats">
         <div class="prov-card-stat">
-          <div class="prov-card-stat-val">${g.arts.length}</div>
+          <div class="prov-card-stat-val">${g.pending.length}</div>
           <div class="prov-card-stat-lbl">PENDIENTES</div>
         </div>
         <div class="prov-card-stat">
@@ -1361,11 +1443,11 @@ function renderProveedores() {
           <div class="prov-card-stat-lbl">CONSUMO</div>
         </div>
       </div>
-      ${activoHtml}
-      <div style="display:flex;gap:6px;">
+      ${orderedHtml}
+      ${g.pending.length>0 ? `<div style="display:flex;gap:6px;margin-top:8px;">
         <button class="btn-ver-detalle" style="flex:1;" onclick="verDetalleProv('${provAttr}','${g.secId}')">🔍 VER DETALLE</button>
         <button class="btn-pedir" style="flex:2;" onclick="pedirProveedor('${provAttr}','${g.secId}')">📦 PEDIR</button>
-      </div>
+      </div>` : ''}
     </div>`;
   });
   html += '</div>';
