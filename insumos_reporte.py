@@ -276,6 +276,8 @@ tbody tr.pedido-done td{{opacity:.5;}}
 .sol-card-atender{{background:#1a3a1a;border:1px solid #2a5a2a;color:#22c55e;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-weight:700;margin-left:auto;}}
 .sol-card-atender:hover{{background:#224422;}}
 .sol-vacas{{color:#2a4a2a;font-size:12px;font-style:italic;}}
+/* Badge ingresado hoy */
+.badge-ingresado{{display:inline-block;background:#0a2e0a;color:#4ade80;font-size:9px;font-weight:900;padding:1px 6px;border-radius:2px;letter-spacing:.5px;margin-left:5px;vertical-align:middle;border:1px solid #1a5a1a;}}
 /* Badge solicitudes en tab */
 .tab-badge{{display:inline-block;background:var(--err);color:#fff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:10px;margin-left:5px;vertical-align:middle;}}
 /* YA PEDIDO section */
@@ -1319,6 +1321,7 @@ function makeSection(id) {{
     const pages=Math.max(1,Math.ceil(total/PG));
     document.getElementById(id+'-cnt').textContent=total+' artículo'+(total!==1?'s':'')+(total!==data.length?' (filtrado)':'');
 
+    const HOY = new Date().toISOString().slice(0,10);
     let html='', curProv=null, inUrgSec=false;
     const agrupar=!provFilter;
     slice.forEach(r=>{{
@@ -1356,10 +1359,11 @@ function makeSection(id) {{
       const urgLabel = urgInfo && typeof urgInfo==='object'
         ? `${{urgInfo.quien}} · ×${{urgInfo.cantidad}}`
         : 'URGENTE';
-      const urgBadge = isUrg?`<span class="badge-urg">⚡ ${{urgLabel}}</span>`:'';
+      const urgBadge      = isUrg?`<span class="badge-urg">⚡ ${{urgLabel}}</span>`:'';
+      const ingresadoBadge = r.UltimoIngreso===HOY?`<span class="badge-ingresado">↑ INGRESADO HOY</span>`:'';
       html+=`<tr data-cod="${{r.Codigo}}" class="${{rowCls}}">
         <td style="font-size:11px;color:#aaa">${{r.Codigo}}</td>
-        <td>${{r.Descripcion}}${{urgBadge}}</td>
+        <td>${{r.Descripcion}}${{urgBadge}}${{ingresadoBadge}}</td>
         <td><span class="unidad-cell" contenteditable="true" spellcheck="false" data-cod="${{r.Codigo}}" data-field="unidad">${{r.Unidad}}</span></td>
         <td class="num">${{r.Consumido>0?fmt(r.Consumido):'<span style="color:#444">—</span>'}}${{r.ConsumoPromDiario>0?`<br><span style="color:#555;font-size:9px;">${{r.ConsumoPromDiario}}/día</span>`:''}}</td>
         <td class="num ${{sc}} ${{stminCls}}" title="${{r.UltimoIngreso?'Último ingreso: '+r.UltimoIngreso:'Sin ingreso registrado'}}">${{fmt(r.StockActual)}}</td>
