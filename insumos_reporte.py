@@ -971,7 +971,6 @@ function onCheckProveedor(e, el, secId) {{
 function pedirProveedor(prov, secId) {{
   const todos = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov &&
-    !(shared.pedido_realizado||[]).includes(r.Codigo) &&
     !(shared.desuso||[]).includes(r.Codigo)
   );
   // conCons: tiene cualquier consumo (MSTOCK o histórico)
@@ -991,14 +990,19 @@ function pedirProveedor(prov, secId) {{
       tbodyHtml += `<tr><td colspan="3" style="padding:4px 10px;background:#111;color:#444;font-size:9px;font-weight:700;letter-spacing:.5px;text-align:center;">── SIN CONSUMO REGISTRADO ──</td></tr>`;
     }}
     const stmin = (shared.stock_minimo||{{}})[r.Codigo];
-    // Cantidad sugerida: solo desde último ingreso MSTOCK (política de reposición)
     const cantAuto = r.ConsumidoDesdeIngreso > 0 ? r.ConsumidoDesdeIngreso : '';
     const stminBadge = (stmin > 0 && r.StockActual < stmin)
       ? `<span style="font-size:9px;color:var(--err);margin-left:4px;">▼mín ${{stmin}}</span>` : '';
     const dimStyle = !tieneConsumo(r) ? 'opacity:.45;' : '';
-    tbodyHtml += `<tr style="${{dimStyle}}">
+    const yaPedido = (shared.pedido_realizado||[]).includes(r.Codigo);
+    const cantPrev = yaPedido ? ((shared.pedido_info||{{}})[r.Codigo]?.cantidad ?? '') : '';
+    const yaBadge = yaPedido
+      ? `<span style="color:#60a5fa;font-size:10px;margin-left:5px;">(pedido: ${{cantPrev}})</span>`
+      : '';
+    const rowColor = yaPedido ? 'color:#60a5fa;' : '';
+    tbodyHtml += `<tr style="${{dimStyle}}${{rowColor}}">
       <td style="color:#555;font-size:10px">${{r.Codigo}}</td>
-      <td>${{r.Descripcion}}${{stminBadge}}</td>
+      <td>${{r.Descripcion}}${{stminBadge}}${{yaBadge}}</td>
       <td style="text-align:right"><input class="ppm-cant" type="number" min="0" value="${{cantAuto}}" data-orig="${{cantAuto}}" oninput="onPpmCantChange(this)" id="ppm-c-${{r.Codigo}}"></td>
     </tr>`;
   }});
@@ -1020,7 +1024,8 @@ function confirmarPedidoProv() {{
   arts.forEach(r => {{
     const cant = parseInt(document.getElementById('ppm-c-'+r.Codigo)?.value)||0;
     if (cant <= 0) return;
-    (shared.pedido_realizado = shared.pedido_realizado||[]).push(r.Codigo);
+    if (!(shared.pedido_realizado||[]).includes(r.Codigo))
+      (shared.pedido_realizado = shared.pedido_realizado||[]).push(r.Codigo);
     (shared.pedido_info = shared.pedido_info||{{}})[r.Codigo] = {{ cantidad:cant, fecha_entrega:fecha, proveedor:prov }};
     addHistorial({{ tipo:'pedido', cod:r.Codigo, descripcion:r.Descripcion, quien:'', cantidad:cant, nota:`Entrega: ${{fecha}} · ${{prov}}`, grupoId, proveedor:prov, fechaEntrega:fecha }});
     confirmados.push({{ codigo:r.Codigo, descripcion:r.Descripcion, cantidad:cant }});
