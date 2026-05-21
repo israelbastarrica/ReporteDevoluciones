@@ -794,14 +794,20 @@ function onCheckProveedor(e, el, secId) {
 }
 
 function pedirProveedor(prov, secId) {
-  const consEfectivo = r => r.ConsumidoDesdeIngreso>=0 ? r.ConsumidoDesdeIngreso : r.Consumido;
+  const getCantSugerida = r => {
+    const st = (shared.stock_minimo||{})[r.Codigo];
+    if (r.ConsumidoDesdeIngreso > 0)       return r.ConsumidoDesdeIngreso;
+    if (st > 0 && r.StockActual < st)      return st - r.StockActual;
+    if (r.Consumido > 0)                   return r.Consumido;
+    return 0;
+  };
   const todos = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov &&
     !(shared.pedido_realizado||[]).includes(r.Codigo) &&
     !(shared.desuso||[]).includes(r.Codigo)
   );
-  const conCons = todos.filter(r => consEfectivo(r) > 0);
-  const sinCons = todos.filter(r => consEfectivo(r) === 0);
+  const conCons = todos.filter(r => getCantSugerida(r) > 0);
+  const sinCons = todos.filter(r => getCantSugerida(r) === 0);
   const arts = [...conCons, ...sinCons];
   if (!arts.length) return;
   pedidoProvData = { prov, secId, arts };
@@ -809,17 +815,13 @@ function pedirProveedor(prov, secId) {
   let tbodyHtml = '';
   let separadorPuesto = false;
   arts.forEach(r => {
-    const ce = consEfectivo(r);
+    const ce = getCantSugerida(r);
     if (!separadorPuesto && ce === 0 && conCons.length > 0) {
       separadorPuesto = true;
       tbodyHtml += `<tr><td colspan="3" style="padding:4px 10px;background:#111;color:#444;font-size:9px;font-weight:700;letter-spacing:.5px;text-align:center;">── SIN CONSUMO REGISTRADO ──</td></tr>`;
     }
     const stmin = (shared.stock_minimo||{})[r.Codigo];
-    let cantAuto;
-    if (r.ConsumidoDesdeIngreso > 0)              cantAuto = r.ConsumidoDesdeIngreso;
-    else if (stmin > 0 && r.StockActual < stmin)  cantAuto = stmin - r.StockActual;
-    else if (r.Consumido > 0)                     cantAuto = r.Consumido;
-    else                                          cantAuto = '';
+    const cantAuto = ce > 0 ? ce : '';
     const stminBadge = (stmin > 0 && r.StockActual < stmin)
       ? `<span style="font-size:9px;color:var(--err);margin-left:4px;">▼mín ${stmin}</span>` : '';
     const dimStyle = ce === 0 ? 'opacity:.45;' : '';
