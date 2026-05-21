@@ -1594,23 +1594,34 @@ function renderProveedores() {{
     const secLabel = g.secId==='ins'?'INSUMOS':'CARTONES';
     const secCls   = g.secId==='ins'?'ins':'cart';
     const provAttr = g.prov.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    const orderedHtml = g.ordered.length ? `
-      <div style="border-top:1px solid #1a2a1a;margin-top:8px;padding-top:6px;">
-        <div style="font-size:9px;font-weight:700;color:#22c55e;letter-spacing:.5px;margin-bottom:4px;">✅ PEDIDO ACTIVO</div>
-        ${{g.ordered.map(r => {{
-          const info = (shared.pedido_info||{{}})[r.Codigo] || {{}};
-          const cant = info.cantidad !== undefined ? info.cantidad : '—';
-          const fechaEnt = info.fecha_entrega ? info.fecha_entrega.split('-').reverse().join('/') : '—';
-          const vencido = info.fecha_entrega && info.fecha_entrega < hoyISO;
-          return `<div style="display:flex;align-items:center;gap:5px;padding:2px 0;font-size:11px;">
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${{r.Descripcion}}</span>
-            <span style="color:#22c55e;font-weight:700;flex-shrink:0;">×${{cant}}</span>
-            <span style="color:${{vencido?'var(--err)':'#60a5fa'}};flex-shrink:0;font-size:10px;">${{fechaEnt}}</span>
-            <button class="btn-llego" style="padding:1px 6px;font-size:10px;flex-shrink:0;" onclick="abrirModalLlego('${{r.Codigo}}')">✓</button>
-            <button class="btn-despedido" style="padding:1px 5px;flex-shrink:0;" onclick="desmarcarPedido('${{r.Codigo}}')">✗</button>
-          </div>`;
-        }}).join('')}}
-      </div>` : '';
+    const cardId = 'pc_' + g.secId + '_' + g.prov.replace(/[^a-zA-Z0-9]/g,'_').slice(0,20);
+    let orderedHtml = '';
+    if (g.ordered.length) {{
+      const fechas = g.ordered.map(r=>(shared.pedido_info||{{}})[r.Codigo]?.fecha_entrega).filter(Boolean).sort();
+      const proxima = fechas[0] ? fechas[0].split('-').reverse().join('/') : '?';
+      const anyVencido = fechas.some(f => f < hoyISO);
+      const itemsHtml = g.ordered.map(r => {{
+        const info = (shared.pedido_info||{{}})[r.Codigo] || {{}};
+        const cant = info.cantidad !== undefined ? info.cantidad : '—';
+        const fechaEnt = info.fecha_entrega ? info.fecha_entrega.split('-').reverse().join('/') : '—';
+        const vencido = info.fecha_entrega && info.fecha_entrega < hoyISO;
+        return `<div style="display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid #111;font-size:11px;">
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${{r.Descripcion}}</span>
+          <span style="color:#22c55e;font-weight:700;flex-shrink:0;">×${{cant}}</span>
+          <span style="color:${{vencido?'var(--err)':'#60a5fa'}};flex-shrink:0;font-size:10px;">${{fechaEnt}}</span>
+          <button class="btn-llego" style="padding:1px 6px;font-size:10px;flex-shrink:0;" onclick="abrirModalLlego('${{r.Codigo}}')">✓ llegó</button>
+          <button class="btn-despedido" style="padding:1px 5px;flex-shrink:0;" onclick="desmarcarPedido('${{r.Codigo}}')">✗</button>
+        </div>`;
+      }}).join('');
+      orderedHtml = `
+        <button onclick="togglePedidoCard('${{cardId}}')" style="width:100%;text-align:left;background:#071a07;border:1px solid #1a3a1a;border-radius:4px;padding:5px 10px;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="color:#22c55e;font-size:11px;font-weight:700;">📦 Pedido N°1 · ${{g.ordered.length}} art. · ent. <span style="color:${{anyVencido?'var(--err)':'#60a5fa'}};">${{proxima}}</span></span>
+          <span id="${{cardId}}-arr" style="color:#22c55e;font-size:10px;">▼</span>
+        </button>
+        <div id="${{cardId}}-det" style="display:none;background:#071207;border:1px solid #1a3a1a;border-top:none;border-radius:0 0 4px 4px;padding:6px 10px 4px;">
+          ${{itemsHtml}}
+        </div>`;
+    }}
     html += `<div class="prov-card">
       <div>
         <div class="prov-card-name" title="${{g.prov}}">${{g.prov}}</div>
@@ -1642,6 +1653,14 @@ function renderProveedores() {{
   setTimeout(()=>{{ const el=document.getElementById('prov-bus'); if(el&&busLow) el.setSelectionRange(el.value.length,el.value.length); }},10);
   const cntEl = document.getElementById('prov-cnt');
   if(cntEl) cntEl.textContent = cards.length + ' proveedor'+(cards.length!==1?'es':'');
+}}
+function togglePedidoCard(cardId) {{
+  const det = document.getElementById(cardId+'-det');
+  const arr = document.getElementById(cardId+'-arr');
+  if (!det) return;
+  const open = det.style.display === 'none';
+  det.style.display = open ? '' : 'none';
+  if (arr) arr.textContent = open ? '▲' : '▼';
 }}
 
 // ── Sync manual ───────────────────────────────────────────────
