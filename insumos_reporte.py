@@ -136,7 +136,8 @@ def _cpd(r):
     return 0.0
 df['ConsumoPromDiario'] = df.apply(_cpd, axis=1)
 
-df = df[(df['Consumido'] > 0) | (df['StockActual'] > 0)].copy()
+in_comb = set(df_stock['Codigo'].tolist())
+df = df[(df['Consumido'] > 0) | (df['StockActual'] > 0) | df['Codigo'].isin(in_comb)].copy()
 df = df.sort_values(['Proveedor', 'Codigo']).reset_index(drop=True)
 df = df[['Proveedor', 'Codigo', 'Descripcion', 'Unidad', 'Consumido', 'StockActual',
          'ConsumidoDesdeIngreso', 'DiasDesdeIngreso', 'UltimoIngreso', 'ConsumoPromDiario']]
@@ -683,6 +684,7 @@ tbody tr.pedido-vencido > td:first-child{{border-left:3px solid var(--err);}}
       <input type="date" id="ppm-fecha">
     </div>
     <div class="ppm-btns">
+      <button class="urg-mcancel" style="margin-right:auto;" onclick="resetCantidadesPedido()">✕ Todo en 0</button>
       <button class="urg-mcancel" onclick="cerrarModalPedidoProv()">Cancelar</button>
       <button class="urg-mconfirm" style="background:#0a1e0a;border-color:#22c55e;color:#22c55e;" onclick="confirmarPedidoProv()">📦 CONFIRMAR PEDIDO</button>
     </div>
@@ -1043,6 +1045,15 @@ function pedirProveedor(prov, secId) {{
 
 function cerrarModalPedidoProv() {{
   document.getElementById('pedido-prov-modal').classList.remove('open');
+}}
+
+function resetCantidadesPedido() {{
+  document.querySelectorAll('#ppm-tbody input[type=number]').forEach(el => {{
+    el.value = '';
+    const row = el.closest('tr');
+    if (row) {{ row.style.color = ''; row.style.fontWeight = ''; }}
+    el.style.borderColor = '';
+  }});
 }}
 
 function confirmarPedidoProv() {{
@@ -1770,6 +1781,7 @@ function confirmarLlegoGrp() {{
   const nota = document.getElementById('lgm-nota').value.trim();
   let count = 0;
   const grupoId = 'lg_' + Date.now().toString() + Math.random().toString(36).slice(2,6);
+  const dragonLines = [];
   arts.forEach(r => {{
     const chk = document.getElementById('lgm-chk-'+r.Codigo);
     if (!chk?.checked) return;
@@ -1779,6 +1791,7 @@ function confirmarLlegoGrp() {{
     shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c=>c!==r.Codigo);
     shared.urgente = (shared.urgente||[]).filter(u=>(typeof u==='string'?u:u.cod)!==r.Codigo);
     if (shared.pedido_info) delete shared.pedido_info[r.Codigo];
+    dragonLines.push(cant + '+' + r.Codigo.toLowerCase() + '!');
     count++;
   }});
   if (!count) {{ cerrarModalLlegoGrp(); return; }}
@@ -1787,6 +1800,11 @@ function confirmarLlegoGrp() {{
   S.ins.filtrar(); S.cart.filtrar();
   renderPedidoSections(); actualizarBadgesUrgente();
   renderProveedores();
+  const blob = new Blob([dragonLines.join('\\n')], {{type:'text/plain'}});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'dragon_' + prov.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click(); URL.revokeObjectURL(url);
 }}
 document.getElementById('llego-grp-modal').addEventListener('click', e=>{{ if(e.target===e.currentTarget) cerrarModalLlegoGrp(); }});
 
