@@ -1195,8 +1195,8 @@ function renderHistorial() {{
   const grupoKeys = {{}};
   const virtEntries = [];
   hist.forEach(e => {{
-    if (e.tipo === 'pedido' || (e.tipo === 'llego' && e.grupoId)) {{
-      const gk = e.grupoId || 'leg_' + (e.nota||'').slice(0,60);
+    if (e.tipo === 'pedido' || e.tipo === 'llego') {{
+      const gk = e.grupoId || (e.tipo + '_ts_' + (e.fecha||''));
       if (!grupoKeys[gk]) {{
         const rk = 'hg_' + (grupoIdx++);
         grupoKeys[gk] = rk;
@@ -1230,11 +1230,16 @@ function renderHistorial() {{
         <td style="color:#aaa;text-align:right;padding:3px 8px;">${{i.cantidad||0}}</td>
       </tr>`).join('');
       if (g.tipo === 'llego') {{
+        const provLlego = g.prov || (() => {{
+          const c = g.items[0]?.codigo;
+          const art = c && [...(DATASETS['ins']||[]),...(DATASETS['cart']||[])].find(r=>r.Codigo===c);
+          return art ? art.Proveedor : '—';
+        }})();
         html += `
           <tr style="cursor:pointer" onclick="toggleDetHistGrupo('${{v.rk}}')">
             <td style="color:#555;font-size:11px;white-space:nowrap">${{g.fecha}}</td>
             <td><span class="tipo-badge tipo-llego">✓ LLEGÓ</span></td>
-            <td><strong>${{g.prov}}</strong><span style="color:#555;font-size:11px;"> · ${{g.items.length}} art.</span></td>
+            <td><strong>${{provLlego}}</strong><span style="color:#555;font-size:11px;"> · ${{g.items.length}} art.</span></td>
             <td style="color:#aaa">—</td>
             <td class="num" style="color:#aaa">${{fmt(total)}}</td>
             <td style="color:#555;font-size:10px;">ver ▾</td>
