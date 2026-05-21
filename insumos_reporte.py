@@ -1238,9 +1238,10 @@ function renderHistorial() {{
           <td style="color:#aaa">—</td>
           <td class="num" style="color:#aaa">${{fmt(total)}}</td>
           <td style="color:#555;font-size:10px;">ver ▾</td>
-          <td style="white-space:nowrap">
-            <button class="hist-del" style="border-color:#2a6b2a;color:#4ade80;margin-right:4px;" onclick="event.stopPropagation();redownloadTxtGrupo('${{v.rk}}')">↓ TXT</button>
-            <button class="hist-del" onclick="event.stopPropagation();eliminarGrupoHist('${{v.rk}}')">Eliminar</button>
+          <td style="white-space:nowrap;display:flex;gap:4px;padding:6px 4px;">
+            <button class="hist-del" style="border-color:#2a6b2a;color:#4ade80;" onclick="event.stopPropagation();redownloadTxtGrupo('${{v.rk}}')">↓ TXT</button>
+            <button class="hist-del" style="border-color:#1a4a7a;color:#60a5fa;" onclick="event.stopPropagation();editarPedidoHist('${{v.rk}}')">✎ Editar</button>
+            <button class="hist-del" style="border-color:#6b2a2a;color:#f87171;" onclick="event.stopPropagation();cancelarPedidoHist('${{v.rk}}')">✕ Cancelar</button>
           </td>
         </tr>
         <tr id="detg-${{v.rk}}" style="display:none;background:#0d0d0d">
@@ -1283,11 +1284,29 @@ function redownloadTxtGrupo(rk) {{
   if (!g) return;
   descargarTxtPedido(g.prov, g.items, g.fechaEnt);
 }}
-function eliminarGrupoHist(rk) {{
+function editarPedidoHist(rk) {{
   const g = _histGruposRender[rk];
   if (!g) return;
+  let secId = null;
+  const firstCod = g.items[0]?.codigo;
+  if (firstCod) {{
+    if ((DATASETS['ins']||[]).some(r=>r.Codigo===firstCod)) secId = 'ins';
+    else if ((DATASETS['cart']||[]).some(r=>r.Codigo===firstCod)) secId = 'cart';
+  }}
+  if (!secId) return;
+  pedirProveedor(g.prov, secId);
+}}
+function cancelarPedidoHist(rk) {{
+  const g = _histGruposRender[rk];
+  if (!g) return;
+  if (!confirm(`¿Cancelar el pedido a ${{g.prov}}? Se quitarán ${{g.items.length}} artículo${{g.items.length!==1?'s':''}} del estado "pedido".`)) return;
+  const cods = g.items.map(i => i.codigo);
+  shared.pedido_realizado = (shared.pedido_realizado||[]).filter(c => !cods.includes(c));
+  if (shared.pedido_info) cods.forEach(c => delete shared.pedido_info[c]);
   shared.historial = (shared.historial||[]).filter(e => !g.ids.includes(e.id));
-  saveShared({{historial: shared.historial}});
+  saveShared({{ pedido_realizado:shared.pedido_realizado, pedido_info:shared.pedido_info, historial:shared.historial }});
+  S.ins.filtrar(); S.cart.filtrar();
+  renderProveedores();
   renderHistorial();
 }}
 function editarNotaHist(id, nota) {{
