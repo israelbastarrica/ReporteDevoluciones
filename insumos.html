@@ -1570,7 +1570,11 @@ function abrirModalLlegoGrp(prov, secId) {
   let html = '';
   arts.forEach(r => {
     const info = (shared.pedido_info||{})[r.Codigo] || {};
-    const cantPed = (info.cantidad > 0) ? info.cantidad : '';
+    let cantPed = (info.cantidad > 0) ? info.cantidad : 0;
+    if (!cantPed) {
+      const hist = [...(shared.historial||[])].reverse().find(e => e.tipo==='pedido' && e.cod===r.Codigo);
+      if (hist && hist.cantidad > 0) cantPed = hist.cantidad;
+    }
     const cantDisp = cantPed || '—';
     html += `<tr>
       <td style="text-align:center;padding:6px 8px;border-bottom:1px solid #1a1a1a;">
@@ -1579,7 +1583,7 @@ function abrirModalLlegoGrp(prov, secId) {
       <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;">${r.Descripcion} <span style="color:#444;font-size:10px;">${r.Codigo}</span></td>
       <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:right;color:${cantPed?'#22c55e':'#444'};font-weight:700;">${cantDisp}</td>
       <td style="padding:6px 10px;border-bottom:1px solid #1a1a1a;text-align:right;">
-        <input type="number" min="0" value="${cantPed}" id="lgm-q-${r.Codigo}" placeholder="0"
+        <input type="number" min="0" value="${cantPed||''}" id="lgm-q-${r.Codigo}" placeholder="0"
           style="width:70px;text-align:right;background:#1a1a1a;border:1px solid ${cantPed?'#333':'#4a3a1a'};color:var(--text);padding:3px 6px;border-radius:3px;">
       </td>
     </tr>`;
