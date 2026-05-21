@@ -795,16 +795,25 @@ function onCheckProveedor(e, el, secId) {
 
 function pedirProveedor(prov, secId) {
   const consEfectivo = r => r.ConsumidoDesdeIngreso>=0 ? r.ConsumidoDesdeIngreso : r.Consumido;
-  const arts = (DATASETS[secId]||[]).filter(r =>
+  const todos = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov &&
     !(shared.pedido_realizado||[]).includes(r.Codigo) &&
-    !(shared.desuso||[]).includes(r.Codigo) &&
-    consEfectivo(r) > 0
+    !(shared.desuso||[]).includes(r.Codigo)
   );
+  const conCons = todos.filter(r => consEfectivo(r) > 0);
+  const sinCons = todos.filter(r => consEfectivo(r) === 0);
+  const arts = [...conCons, ...sinCons];
   if (!arts.length) return;
   pedidoProvData = { prov, secId, arts };
   document.getElementById('ppm-prov').textContent = prov;
-  document.getElementById('ppm-tbody').innerHTML = arts.map(r => {
+  let tbodyHtml = '';
+  let separadorPuesto = false;
+  arts.forEach(r => {
+    const ce = consEfectivo(r);
+    if (!separadorPuesto && ce === 0 && conCons.length > 0) {
+      separadorPuesto = true;
+      tbodyHtml += `<tr><td colspan="3" style="padding:4px 10px;background:#111;color:#444;font-size:9px;font-weight:700;letter-spacing:.5px;text-align:center;">── SIN CONSUMO REGISTRADO ──</td></tr>`;
+    }
     const stmin = (shared.stock_minimo||{})[r.Codigo];
     let cantAuto;
     if (r.ConsumidoDesdeIngreso > 0)              cantAuto = r.ConsumidoDesdeIngreso;
@@ -813,12 +822,14 @@ function pedirProveedor(prov, secId) {
     else                                          cantAuto = '';
     const stminBadge = (stmin > 0 && r.StockActual < stmin)
       ? `<span style="font-size:9px;color:var(--err);margin-left:4px;">▼mín ${stmin}</span>` : '';
-    return `<tr>
+    const dimStyle = ce === 0 ? 'opacity:.45;' : '';
+    tbodyHtml += `<tr style="${dimStyle}">
       <td style="color:#555;font-size:10px">${r.Codigo}</td>
       <td>${r.Descripcion}${stminBadge}</td>
       <td style="text-align:right"><input class="ppm-cant" type="number" min="0" value="${cantAuto}" id="ppm-c-${r.Codigo}"></td>
     </tr>`;
-  }).join('');
+  });
+  document.getElementById('ppm-tbody').innerHTML = tbodyHtml;
   document.getElementById('ppm-fecha').value = '';
   document.getElementById('pedido-prov-modal').classList.add('open');
 }
