@@ -892,8 +892,9 @@ document.getElementById('pedido-modal').addEventListener('click', e=>{{ if(e.tar
 // ── Pedido por proveedor ──────────────────────────────────────
 let pedidoProvData = null;
 
-function onCheckProveedor(e, prov, secId) {{
+function onCheckProveedor(e, el, secId) {{
   e.target.checked = false;
+  const prov = el.dataset.prov;
   const arts = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov &&
     !(shared.pedido_realizado||[]).includes(r.Codigo) &&
@@ -1069,11 +1070,11 @@ function renderPedidoSections() {{
     let html = '';
     Object.keys(byProv).sort().forEach(prov => {{
       const arts = byProv[prov];
-      const provEsc = prov.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const provAttr = prov.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
       html += `<div class="pedido-prov-group">
         <div class="pedido-prov-hdr">
           <span class="pedido-prov-hdr-name">▼ ${{prov}} (${{arts.length}})</span>
-          <button class="btn-dl-txt" onclick="downloadPedidoTxt('${{provEsc}}','${{id}}')">⬇ DESCARGAR TXT</button>
+          <button class="btn-dl-txt" data-prov="${{provAttr}}" data-sec="${{id}}" onclick="downloadPedidoTxt(this)">⬇ DESCARGAR TXT</button>
         </div>
         <table style="width:100%;border-collapse:collapse;">
           <thead><tr>
@@ -1107,7 +1108,9 @@ function renderPedidoSections() {{
   }});
 }}
 
-function downloadPedidoTxt(prov, secId) {{
+function downloadPedidoTxt(btn) {{
+  const prov = btn.dataset.prov;
+  const secId = btn.dataset.sec;
   const arts = (DATASETS[secId]||[]).filter(r =>
     r.Proveedor === prov && (shared.pedido_realizado||[]).includes(r.Codigo)
   );
@@ -1241,11 +1244,13 @@ function makeSection(id) {{
         curProv=r.Proveedor;
         const tc=filt.filter(x=>x.Proveedor===curProv&&!isUrgente(x.Codigo)).reduce((s,x)=>s+x.Consumido,0);
         const provPend=filt.filter(x=>x.Proveedor===curProv&&!isUrgente(x.Codigo)&&!(shared.pedido_realizado||[]).includes(x.Codigo)).length>0;
-        const provEsc=curProv.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        const provAttr=curProv.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+        const chkHtml=provPend
+          ?`<input type="checkbox" onclick="event.stopPropagation()" onchange="onCheckProveedor(event,this,'${{id}}')" data-prov="${{provAttr}}" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">`
+          :`<input type="checkbox" disabled style="width:14px;height:14px;opacity:.25;cursor:default;flex-shrink:0;">`;
         html+=`<tr class="group-row"><td colspan="4">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
-            ${{provPend?`<input type="checkbox" onclick="event.stopPropagation()" onchange="onCheckProveedor(event,'${{provEsc}}','${{id}}')" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">`:`<input type="checkbox" disabled style="width:14px;height:14px;opacity:.25;cursor:default;flex-shrink:0;">`}}
-            ▼ ${{curProv}}
+            ${{chkHtml}} ▼ ${{curProv}}
           </label></td><td class="num">${{fmt(tc)}}</td><td colspan="4"></td></tr>`;
       }}
       const isDone = (shared.pedido_realizado||[]).includes(r.Codigo);
