@@ -799,8 +799,11 @@ function pedirProveedor(prov, secId) {
     !(shared.pedido_realizado||[]).includes(r.Codigo) &&
     !(shared.desuso||[]).includes(r.Codigo)
   );
-  const conCons = todos.filter(r => r.ConsumidoDesdeIngreso > 0);
-  const sinCons = todos.filter(r => r.ConsumidoDesdeIngreso <= 0);
+  // conCons: tiene cualquier consumo (MSTOCK o histórico)
+  // sinCons: sin ningún consumo registrado
+  const tieneConsumo = r => r.ConsumidoDesdeIngreso > 0 || r.Consumido > 0;
+  const conCons = todos.filter(r => tieneConsumo(r));
+  const sinCons = todos.filter(r => !tieneConsumo(r));
   const arts = [...conCons, ...sinCons];
   if (!arts.length) return;
   pedidoProvData = { prov, secId, arts };
@@ -808,15 +811,16 @@ function pedirProveedor(prov, secId) {
   let tbodyHtml = '';
   let separadorPuesto = false;
   arts.forEach(r => {
-    if (!separadorPuesto && r.ConsumidoDesdeIngreso <= 0 && conCons.length > 0) {
+    if (!separadorPuesto && !tieneConsumo(r) && conCons.length > 0) {
       separadorPuesto = true;
-      tbodyHtml += `<tr><td colspan="3" style="padding:4px 10px;background:#111;color:#444;font-size:9px;font-weight:700;letter-spacing:.5px;text-align:center;">── SIN CONSUMO DESDE ÚLTIMO INGRESO ──</td></tr>`;
+      tbodyHtml += `<tr><td colspan="3" style="padding:4px 10px;background:#111;color:#444;font-size:9px;font-weight:700;letter-spacing:.5px;text-align:center;">── SIN CONSUMO REGISTRADO ──</td></tr>`;
     }
     const stmin = (shared.stock_minimo||{})[r.Codigo];
+    // Cantidad sugerida: solo desde último ingreso MSTOCK (política de reposición)
     const cantAuto = r.ConsumidoDesdeIngreso > 0 ? r.ConsumidoDesdeIngreso : '';
     const stminBadge = (stmin > 0 && r.StockActual < stmin)
       ? `<span style="font-size:9px;color:var(--err);margin-left:4px;">▼mín ${stmin}</span>` : '';
-    const dimStyle = r.ConsumidoDesdeIngreso <= 0 ? 'opacity:.45;' : '';
+    const dimStyle = !tieneConsumo(r) ? 'opacity:.45;' : '';
     tbodyHtml += `<tr style="${dimStyle}">
       <td style="color:#555;font-size:10px">${r.Codigo}</td>
       <td>${r.Descripcion}${stminBadge}</td>
