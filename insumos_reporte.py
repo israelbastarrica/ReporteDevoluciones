@@ -25,6 +25,9 @@ UNIDAD_DEFAULT = 'Unidad'
 
 # Códigos que van a la sección Cartones aunque su descripción no empiece con "CARTON"
 CODIGOS_CARTON_EXTRA = {'ZZ0000315'}
+
+# Códigos que siempre se incluyen aunque stock=0 y consumo=0 y no estén en COMB
+CODIGOS_SIEMPRE_INCLUIR = {'ZZ0000118'}
 DB_MARKET = 'MARKET'
 
 # ---------------------------------------------------------------------------
@@ -119,7 +122,13 @@ print(f"  Artículos con ingreso MSTOCK: {len(df_mstock)}")
 # ---------------------------------------------------------------------------
 # 5. Merge y limpieza
 # ---------------------------------------------------------------------------
-df = df_stock.merge(df_consumo, on='Codigo', how='outer')
+# Garantizar que artículos de inclusión forzada estén presentes aunque no
+# aparezcan en COMB ni en consumo
+codigos_forzar = CODIGOS_SIEMPRE_INCLUIR | CODIGOS_CARTON_EXTRA
+forzados = df_art[df_art['Codigo'].isin(codigos_forzar)][['Codigo']].copy()
+df_stock_ext = pd.concat([df_stock, forzados], ignore_index=True).drop_duplicates('Codigo')
+
+df = df_stock_ext.merge(df_consumo, on='Codigo', how='outer')
 df = df.merge(df_art, on='Codigo', how='left')
 df = df.merge(df_mstock, on='Codigo', how='left')
 
@@ -140,7 +149,7 @@ def _cpd(r):
 df['ConsumoPromDiario'] = df.apply(_cpd, axis=1)
 
 in_comb = set(df_stock['Codigo'].tolist())
-df = df[(df['Consumido'] > 0) | (df['StockActual'] > 0) | df['Codigo'].isin(in_comb) | df['Codigo'].isin(CODIGOS_CARTON_EXTRA)].copy()
+df = df[(df['Consumido'] > 0) | (df['StockActual'] > 0) | df['Codigo'].isin(in_comb) | df['Codigo'].isin(CODIGOS_CARTON_EXTRA) | df['Codigo'].isin(CODIGOS_SIEMPRE_INCLUIR)].copy()
 df = df.sort_values(['Proveedor', 'Codigo']).reset_index(drop=True)
 df = df[['Proveedor', 'Codigo', 'Descripcion', 'Unidad', 'Consumido', 'StockActual',
          'ConsumidoDesdeIngreso', 'DiasDesdeIngreso', 'UltimoIngreso', 'ConsumoPromDiario']]
