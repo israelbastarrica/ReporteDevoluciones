@@ -1685,7 +1685,7 @@ def obtener_pendientes():
             WHERE CV.FLETRA = 'R'
               AND CV.ANULADO = 0
               AND UPPER(RTRIM(CV.FCLIENTE)) IN ('CENTRAL', 'CCENTRAL')
-              AND MT.CODIGO IS NULL
+              AND (MT.CODIGO IS NULL OR ISNULL(MT.MOVGEN, 0) = 0)
               AND CVD.FTXT NOT LIKE '%BOLSA%'
               AND LEFT(RTRIM(CVD.FART), 1) NOT IN ('Z', '9')
             GROUP BY CV.FNUMCOMP, CAST(CV.FFCH AS DATE), RTRIM(CVD.FART)
@@ -1711,7 +1711,7 @@ def obtener_pendientes():
             WHERE CV.FLETRA = 'R'
               AND CV.ANULADO = 0
               AND UPPER(RTRIM(CV.FCLIENTE)) IN ('CENTRAL', 'CCENTRAL')
-              AND MT.CODIGO IS NULL
+              AND (MT.CODIGO IS NULL OR ISNULL(MT.MOVGEN, 0) = 0)
               AND CVD.FTXT NOT LIKE '%BOLSA%'
               AND LEFT(RTRIM(CVD.FART), 1) NOT IN ('Z', '9')
             GROUP BY CV.FNUMCOMP, CAST(CV.FFCH AS DATE), RTRIM(CVD.FART)
