@@ -1816,6 +1816,8 @@ def generar_pendientes_html(df, nombre_archivo="pendientes.html"):
         local_color = '#e8b963' if r['Local'] == 'LURO' else '#64b5f6'
         key_js = f'{int(r["Remito"])}_{r["Local"]}'
         tabla_rows += f'''<tr data-local="{r['Local']}" data-key="{key_js}"
+            data-remito="{int(r['Remito'])}" data-fecha="{r['Fecha']}" data-dias="{int(r['Dias'])}"
+            data-modelos="{int(r['Modelos'])}" data-prendas="{int(r['Prendas'])}"
             style="border-bottom:1px solid #111;cursor:pointer;" onclick="verDetalle('{key_js}','{int(r['Remito'])}','{r['Fecha']}','{r['Local']}')">
             <td style="padding:10px 12px;font-weight:900;font-size:.95rem;">{int(r['Remito'])}</td>
             <td style="padding:10px 12px;color:#666;font-size:.9rem;">{r['Fecha']}</td>
@@ -1884,6 +1886,9 @@ body {{ background:#060606; color:#ddd; font-family:'Segoe UI',Arial,sans-serif;
 table {{ width:100%; border-collapse:collapse; font-size:.9rem; }}
 thead th {{ padding:8px 12px; font-size:.65rem; letter-spacing:3px; color:#444;
             text-transform:uppercase; border-bottom:1px solid #1a1a1a; }}
+.th-sort {{ cursor:pointer; user-select:none; white-space:nowrap; }}
+.th-sort:hover {{ color:#e8b963; }}
+.sort-ind {{ color:#e8b963; font-size:.7rem; }}
 tbody tr:hover {{ background:#0e0e0e; }}
 .modal-content {{ background:#0a0a0a; border:1px solid #222; border-radius:2px; }}
 .modal-header {{ border-bottom:1px solid #1a1a1a; padding:16px 20px; }}
@@ -1944,10 +1949,12 @@ tbody tr:hover {{ background:#0e0e0e; }}
             <div class="card-dark" style="overflow:hidden;">
                 <table>
                     <thead><tr>
-                        <th>REMITO</th><th>FECHA</th><th>LOCAL</th>
-                        <th style="text-align:right;">ANTIGÜEDAD</th>
-                        <th style="text-align:right;">MODELOS</th>
-                        <th style="text-align:right;">PRENDAS</th>
+                        <th class="th-sort" onclick="sortTable('remito','num')">REMITO <span class="sort-ind" id="sort-remito"></span></th>
+                        <th class="th-sort" onclick="sortTable('fecha','str')">FECHA <span class="sort-ind" id="sort-fecha">▼</span></th>
+                        <th class="th-sort" onclick="sortTable('local','str')">LOCAL <span class="sort-ind" id="sort-local"></span></th>
+                        <th class="th-sort" style="text-align:right;" onclick="sortTable('dias','num')">ANTIGÜEDAD <span class="sort-ind" id="sort-dias"></span></th>
+                        <th class="th-sort" style="text-align:right;" onclick="sortTable('modelos','num')">MODELOS <span class="sort-ind" id="sort-modelos"></span></th>
+                        <th class="th-sort" style="text-align:right;" onclick="sortTable('prendas','num')">PRENDAS <span class="sort-ind" id="sort-prendas"></span></th>
                     </tr></thead>
                     <tbody id="tablaBody">{tabla_rows}</tbody>
                 </table>
@@ -2085,6 +2092,24 @@ function buscarRemito(val) {{
     filtroBusq = val.trim();
     pagina = 1;
     aplicarFiltros();
+}}
+
+let sortCol = 'fecha', sortDir = -1;
+function sortTable(col, type) {{
+    if (sortCol === col) sortDir *= -1; else {{ sortCol = col; sortDir = -1; }}
+    const tbody = document.getElementById('tablaBody');
+    Array.from(tbody.querySelectorAll('tr'))
+        .sort((a, b) => {{
+            let va = a.dataset[col] ?? '', vb = b.dataset[col] ?? '';
+            if (type === 'num') {{ va = parseFloat(va)||0; vb = parseFloat(vb)||0; }}
+            return va < vb ? sortDir : va > vb ? -sortDir : 0;
+        }})
+        .forEach(r => tbody.appendChild(r));
+    pagina = 1;
+    aplicarFiltros();
+    document.querySelectorAll('.sort-ind').forEach(s => s.textContent = '');
+    const ind = document.getElementById('sort-' + col);
+    if (ind) ind.textContent = sortDir > 0 ? '▲' : '▼';
 }}
 
 function verDetalle(key, remito, fecha, local) {{
